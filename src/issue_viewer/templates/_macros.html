@@ -1,0 +1,84 @@
+{% macro state_icon(issue) -%}
+{% if issue.is_open -%}
+<span class="state-icon state-open" title="Open">{{ icon("issue-opened") }}</span>
+{%- elif issue.reason == "not_planned" -%}
+<span class="state-icon state-not-planned" title="Closed as not planned">{{ icon("issue-not-planned") }}</span>
+{%- else -%}
+<span class="state-icon state-done" title="Closed as completed">{{ icon("issue-closed") }}</span>
+{%- endif %}
+{%- endmacro %}
+
+{% macro state_badge(issue) -%}
+{% if issue.is_open -%}
+<span class="State State--open">{{ icon("issue-opened") }} Open</span>
+{%- elif issue.reason == "not_planned" -%}
+<span class="State State--not-planned">{{ icon("issue-not-planned") }} Closed</span>
+{%- else -%}
+<span class="State State--done">{{ icon("issue-closed") }} Closed</span>
+{%- endif %}
+{%- endmacro %}
+
+{% macro label_pill(name, href=none) -%}
+{% if href -%}
+<a class="IssueLabel" href="{{ href }}" style="{{ label_style(name) }}">{{ name }}</a>
+{%- else -%}
+<span class="IssueLabel" style="{{ label_style(name) }}">{{ name }}</span>
+{%- endif %}
+{%- endmacro %}
+
+{% macro avatar(name) -%}
+<span class="avatar" style="{{ avatar_style(name) }}" aria-hidden="true">{{ name[:1]|upper }}</span>
+{%- endmacro %}
+
+{% macro issue_ref(project, number, issue) -%}
+{% if issue -%}
+<a class="issue-ref" href="/{{ project.name }}/issues/{{ number }}">{{ state_icon(issue) }}<span><span class="issue-ref-title">{{ issue.title }}</span> <span class="issue-ref-number">#{{ number }}</span></span></a>
+{%- else -%}
+<span class="issue-ref issue-ref-missing">{{ icon("alert") }}<span class="issue-ref-title">No issue #{{ number }} in this project</span></span>
+{%- endif %}
+{%- endmacro %}
+
+{% macro editor(name, value, placeholder, preview_url, rows=8, autofocus=false, label="Markdown") -%}
+<div class="editor js-editor">
+  <div class="editor-tabs" role="tablist">
+    <button type="button" class="editor-tab selected js-editor-tab" data-tab="write" role="tab" aria-selected="true">Write</button>
+    <button type="button" class="editor-tab js-editor-tab" data-tab="preview" role="tab" aria-selected="false">Preview</button>
+  </div>
+  <div class="editor-body">
+    <textarea class="form-control editor-input js-editor-input" name="{{ name }}" rows="{{ rows }}" placeholder="{{ placeholder }}" aria-label="{{ label }}" data-preview-url="{{ preview_url }}"{% if autofocus %} autofocus{% endif %}>
+{{ value }}</textarea>
+    <div class="editor-preview markdown-body js-editor-preview" hidden></div>
+  </div>
+  <div class="editor-footer">{{ icon("markdown") }}<span>Markdown is supported</span><span class="editor-hint">Ctrl + Enter to submit</span></div>
+</div>
+{%- endmacro %}
+
+{% macro label_picker(all_labels, selected, form_id=none, auto_submit=false, heading="Labels") -%}
+<details class="menu label-picker js-menu js-label-picker{% if auto_submit %} js-auto-submit{% endif %}"{% if form_id %} data-form="{{ form_id }}"{% endif %}>
+  <summary class="sidebar-heading sidebar-heading-button">{{ heading }} {{ icon("gear") }}</summary>
+  <div class="menu-overlay menu-right menu-wide">
+    <div class="menu-title">Apply labels to this issue</div>
+    <div class="menu-filter">
+      <input type="text" class="form-control input-sm js-label-filter" placeholder="Filter or create labels" aria-label="Filter or create labels" autocomplete="off">
+    </div>
+    <div class="menu-list js-label-list">
+      {% for label in all_labels %}
+      <label class="menu-item label-option" data-name="{{ label|lower }}">
+        <input type="checkbox" name="labels" value="{{ label }}"{% if label in selected %} checked{% endif %}{% if form_id %} form="{{ form_id }}"{% endif %}>
+        <span class="menu-check">{{ icon("check") }}</span>
+        <span class="color-dot" style="background-color:#{{ label_color(label) }}"></span>
+        <span class="label-option-name">{{ label }}</span>
+      </label>
+      {% endfor %}
+      <button type="button" class="menu-item label-create js-label-create" hidden>{{ icon("tag") }}<span>Create new label: <strong class="js-label-create-name"></strong></span></button>
+      <p class="menu-empty js-label-empty"{% if all_labels %} hidden{% endif %}>No labels yet. Type a name to create one.</p>
+    </div>
+    {% if auto_submit %}
+    <div class="menu-footer">
+      <span class="muted small">Changes apply when the menu closes.</span>
+      <button class="btn btn-sm btn-primary" type="submit"{% if form_id %} form="{{ form_id }}"{% endif %}>Apply</button>
+    </div>
+    {% endif %}
+  </div>
+</details>
+{%- endmacro %}

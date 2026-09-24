@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}{{ status }} · Issue viewer{% endblock %}
+{% block content %}
+<div class="Box">
+  <div class="blankslate blankslate-large">
+    {{ icon("alert", 32) }}
+    <h2>{{ message }}</h2>
+    <p class="muted">Error {{ status }}.</p>
+    <p><a class="btn" href="/">Back to the projects</a></p>
+  </div>
+</div>
+{% endblock %}

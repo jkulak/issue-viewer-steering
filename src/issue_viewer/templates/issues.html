@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% from "_macros.html" import state_icon, label_pill %}
+{% block title %}Issues · {{ project.name }}{% endblock %}
+{% block body_attributes %} data-version-url="/{{ project.name }}/-/version" data-version="{{ signature }}"{% endblock %}
+{% block content %}
+{% if not project.exists %}
+<div class="flash flash-error">{{ icon("alert") }} <code>{{ project.path }}</code> does not exist inside the container. Check <code>PROJECTS</code> in <code>.env</code> and run <code>make up</code>.</div>
+{% endif %}
+{% if snapshot.duplicates %}
+<div class="flash flash-warn">{{ icon("alert") }} Hidden because an earlier file has the same number: {% for name in snapshot.duplicates %}<code>{{ name }}</code>{% if not loop.last %}, {% endif %}{% endfor %}. Renumber them to see them here.</div>
+{% endif %}
+
+<div class="list-toolbar">
+  <form class="search-form" method="get" action="/{{ project.name }}/issues" role="search">
+    <label class="search-input">
+      {{ icon("search") }}
+      <input type="text" name="q" value="{{ q }}" class="js-search-input" aria-label="Search all issues" autocomplete="off" spellcheck="false">
+    </label>
+  </form>
+  <div class="toolbar-actions">
+    <a class="btn" href="/{{ project.name }}/labels">{{ icon("tag") }} Labels <span class="Counter">{{ snapshot.labels|length }}</span></a>
+    {% if project.writable %}
+    <a class="btn btn-primary js-new-issue" href="/{{ project.name }}/issues/new">New issue</a>
+    {% endif %}
+  </div>
+</div>
+
+{% if q != default_q %}
+<a class="clear-query" href="/{{ project.name }}/issues">{{ icon("x") }} Clear current search query, filters, and sorts</a>
+{% endif %}
+
+<div class="Box issues-box">
+  <div class="Box-header issues-header">
+    <div class="state-tabs">
+      <a class="state-tab{% if query.state == 'open' %} selected{% endif %}" href="{{ query_url(with_state('open')) }}">{{ icon("issue-opened") }} Open <span class="Counter">{{ open_count }}</span></a>
+      <a class="state-tab{% if query.state == 'closed' %} selected{% endif %}" href="{{ query_url(with_state('closed')) }}">{{ icon("issue-closed") }} Closed <span class="Counter">{{ closed_count }}</span></a>
+    </div>
+    <div class="header-filters">
+      <details class="menu js-menu">
+        <summary class="filter-button">Labels {{ icon("triangle-down") }}</summary>
+        <div class="menu-overlay menu-right">
+          <div class="menu-title">Filter by label</div>
+          <div class="menu-list">
+            <a class="menu-item" href="{{ query_url(with_no_label()) }}"{% if query.no_label %} aria-checked="true"{% endif %}>
+              <span class="menu-check">{{ icon("check") }}</span><span class="color-dot color-dot-empty"></span><span>No labels</span>
+            </a>
+            {% for label in snapshot.labels %}
+            <a class="menu-item" href="{{ query_url(with_label(label)) }}"{% if has_label(label) %} aria-checked="true"{% endif %}>
+              <span class="menu-check">{{ icon("check") }}</span><span class="color-dot" style="background-color:#{{ label_color(label) }}"></span><span>{{ label }}</span>
+            </a>
+            {% endfor %}
+          </div>
+        </div>
+      </details>
+      <details class="menu js-menu">
+        <summary class="filter-button">{{ sort_label }} {{ icon("triangle-down") }}</summary>
+        <div class="menu-overlay menu-right">
+          <div class="menu-title">Sort by</div>
+          <div class="menu-list">
+            {% for key, label in sorts %}
+            <a class="menu-item" href="{{ query_url(with_sort(key)) }}"{% if key == query.sort %} aria-checked="true"{% endif %}>
+              <span class="menu-check">{{ icon("check") }}</span><span>{{ label }}</span>
+            </a>
+            {% endfor %}
+          </div>
+        </div>
+      </details>
+    </div>
+  </div>
+
+  {% for issue in rows %}
+  <div class="Box-row issue-row" id="issue-{{ issue.number }}">
+    <span class="issue-row-icon">{{ state_icon(issue) }}</span>
+    <div class="issue-row-main">
+      <a class="issue-row-title" href="/{{ project.name }}/issues/{{ issue.number }}">{{ issue.title }}</a>
+      {% for label in issue.labels %}{{ label_pill(label, query_url(label_query(label))) }} {% endfor %}
+      <div class="issue-row-meta">
+        <span>#{{ issue.number }}</span>
+        {% if issue.state_is_custom %}<span class="meta-dot">·</span><span class="state-note">{{ issue.state }}</span>{% endif %}
+        <span class="meta-dot">·</span>
+        <span title="{{ absolute(issue.updated) }}">updated {{ ago(issue.updated) }}</span>
+        {% if issue.tasks_total %}
+        <span class="meta-item task-progress">{{ progress(issue.tasks_done, issue.tasks_total) }}{{ issue.tasks_done }} of {{ issue.tasks_total }} tasks</span>
+        {% endif %}
+        {% set blockers = snapshot.open_dependencies(issue) if issue.is_open else [] %}
+        {% if blockers %}
+        <span class="meta-item blocked-note">{{ icon("blocked") }}Blocked by {% for blocker in blockers %}<a href="/{{ project.name }}/issues/{{ blocker.number }}" title="{{ blocker.title }}">#{{ blocker.number }}</a>{% if not loop.last %}, {% endif %}{% endfor %}</span>
+        {% endif %}
+        {% if issue.problems %}
+        <span class="meta-item problem-note" title="{{ issue.problems|join(' ') }}">{{ icon("alert") }}Could not be read in full</span>
+        {% endif %}
+      </div>
+    </div>
+    <div class="issue-row-side">
+      {% if issue.comments %}
+      <a class="comment-count" href="/{{ project.name }}/issues/{{ issue.number }}#comments" aria-label="{{ issue.comments|length }} comments">{{ icon("comment") }}{{ issue.comments|length }}</a>
+      {% endif %}
+    </div>
+  </div>
+  {% else %}
+  <div class="blankslate">
+    {{ icon("issue-opened", 24) }}
+    <h3>No results</h3>
+    <p>{% if snapshot.issues %}Try a different search, or <a href="/{{ project.name }}/issues?q=">see every issue</a>.{% else %}There are no issue files in this directory yet.{% endif %}</p>
+  </div>
+  {% endfor %}
+</div>
+
+{% if pages > 1 %}
+<nav class="pagination" aria-label="Pagination">
+  {% if page > 1 %}
+  <a class="pagination-step" href="{{ query_url(q, page - 1) }}" rel="prev">{{ icon("chevron-left") }} Previous</a>
+  {% else %}
+  <span class="pagination-step disabled">{{ icon("chevron-left") }} Previous</span>
+  {% endif %}
+  {% for number in page_items %}
+    {% if number is none %}<span class="pagination-gap">…</span>
+    {% elif number == page %}<em class="current" aria-current="page">{{ number }}</em>
+    {% else %}<a href="{{ query_url(q, number) }}">{{ number }}</a>
+    {% endif %}
+  {% endfor %}
+  {% if page < pages %}
+  <a class="pagination-step" href="{{ query_url(q, page + 1) }}" rel="next">Next {{ icon("chevron-right") }}</a>
+  {% else %}
+  <span class="pagination-step disabled">Next {{ icon("chevron-right") }}</span>
+  {% endif %}
+</nav>
+{% endif %}
+{% endblock %}
