@@ -1,0 +1,14 @@
+.git
+.env
+tasks
+.claude
+CLAUDE.md
+compose.override.yaml
+**/__pycache__
+**/*.egg-info
+.venv
+.pytest_cache
+.ruff_cache
+test-results
+playwright-report
+.DS_Store

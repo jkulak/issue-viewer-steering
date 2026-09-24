@@ -1,0 +1,26 @@
+# Configuration and working notes stay on the machine
+.env
+tasks/
+.claude/
+CLAUDE.md
+
+# Generated from .env by `make mounts`
+compose.override.yaml
+compose.override.yaml.tmp
+openapi.json.tmp
+
+# Python and tool caches
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+.ruff_cache/
+build/
+dist/
+
+# Playwright output
+test-results/
+playwright-report/
+
+.DS_Store
