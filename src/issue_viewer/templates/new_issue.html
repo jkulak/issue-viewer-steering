@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% from "_macros.html" import avatar, editor, label_picker, label_pill %}
+{% block title %}New issue · {{ project.name }}{% endblock %}
+{% block content %}
+<h1 class="page-title">Create new issue</h1>
+{% if error %}
+<div class="flash flash-error" role="alert">{{ icon("alert") }} {{ error }}</div>
+{% endif %}
+<form id="new-issue-form" class="issue-layout js-new-issue-form" method="post" action="/{{ project.name }}/issues">
+  <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+  <div class="issue-main">
+    <div class="timeline-new-comment new-issue">
+      {{ avatar(project.name) }}
+      <div class="timeline-comment new-issue-box">
+        <div class="new-issue-field">
+          <label class="field-label" for="issue-title">Add a title <span class="required" aria-hidden="true">*</span></label>
+          <input id="issue-title" class="form-control input-lg" type="text" name="title" value="{{ title }}" placeholder="Title" required maxlength="256" autocomplete="off" autofocus>
+        </div>
+        <div class="new-issue-field">
+          <span class="field-label">Add a description</span>
+          {{ editor("description", description, "Type your description here…", "/" ~ project.name ~ "/preview", rows=22, label="Description") }}
+        </div>
+        <div class="form-actions">
+          <a class="btn" href="/{{ project.name }}/issues">Cancel</a>
+          <button class="btn btn-primary" type="submit">Create</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <aside class="issue-sidebar" aria-label="Issue details">
+    <div class="sidebar-item">
+      {{ label_picker(all_labels, chosen) }}
+      <div class="sidebar-labels js-chosen-labels">
+        {% for label in chosen %}{{ label_pill(label) }} {% else %}<span class="muted">None yet</span>{% endfor %}
+      </div>
+    </div>
+    <div class="sidebar-item">
+      <div class="sidebar-heading">File</div>
+      <p class="muted sidebar-note">Saved as <code>NNN-title.md</code> with the next free number, in <code>{{ project.path }}</code>, with <code>state: open</code>.</p>
+    </div>
+  </aside>
+</form>
+{% endblock %}
