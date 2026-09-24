@@ -1,0 +1,32 @@
+name: CI
+
+# A pull request is where a change is tested before it reaches main, so nothing runs again on the
+# push to main. Version tags run the same checks for a release, and a run can be started by hand.
+on:
+  pull_request:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+# A new push to the same pull request makes the running check stale; cancel it.
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - name: Lint
+        run: make lint
+      - name: Unit and web tests
+        run: make test
+      - name: Smoke tests against the production image
+        run: make smoke
+      - name: Browser tests against the production image
+        run: make e2e
