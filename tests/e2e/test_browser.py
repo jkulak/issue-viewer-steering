@@ -217,3 +217,27 @@ def test_the_board_of_a_read_only_project_has_nothing_to_drag(page):
     expect(page.locator(".board-card")).not_to_have_count(0)
     expect(page.locator(".js-card")).to_have_count(0)
     expect(page.locator(".board-move")).to_have_count(0)
+
+
+def test_a_github_card_links_to_github_and_cannot_be_moved(page):
+    page.goto("/-/board?project=acme-notes/notes-api")
+    # The first board may still be reading GitHub; it reloads by itself when the answer arrives.
+    card = page.locator('[id="card-github/acme-notes/notes-api/11"]')
+    expect(card).to_be_visible()
+    expect(page.locator('.board-column[data-column="review"]')).to_contain_text("Search notes by tag")
+    expect(card).to_contain_text("from PR")
+    expect(card).not_to_have_attribute("draggable", "true")
+    expect(card.locator(".board-move")).to_have_count(0)
+    title = card.locator(".board-card-title")
+    expect(title).to_have_attribute("href", "https://github.com/acme-notes/notes-api/issues/11")
+    expect(title).to_have_attribute("target", "_blank")
+
+
+def test_choosing_a_github_repository_from_the_projects_menu(page):
+    page.goto("/-/board")
+    page.locator(".toolbar-actions summary", has_text="Projects").click()
+    page.locator(".menu-item", has_text="acme-notes/notes-web").click()
+    page.get_by_role("button", name="Show").click()
+    expect(page).to_have_url(re.compile(r"project=acme-notes%2Fnotes-web"))
+    expect(page.locator(".board-card")).to_have_count(3)
+    expect(page.locator('.board-column[data-column="selected"]')).to_contain_text("Dark mode")

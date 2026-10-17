@@ -109,6 +109,22 @@ const SHAPES: &[(&str, &str)] = &[
         "project",
         r##"<rect x="1.75" y="1.75" width="12.5" height="12.5" rx="1.25" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5 4.75v6.5M8 4.75v3.5M11 4.75v5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>"##,
     ),
+    (
+        "git-pull-request",
+        r##"<circle cx="4.5" cy="3.25" r="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="4.5" cy="12.75" r="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="11.5" cy="12.75" r="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M4.5 4.75v6.5M11.5 11.25V6.75c0-1.1-.9-2-2-2H7M8.75 3 7 4.75 8.75 6.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>"##,
+    ),
+    (
+        "git-pull-request-draft",
+        r##"<circle cx="4.5" cy="3.25" r="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="4.5" cy="12.75" r="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="11.5" cy="12.75" r="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M4.5 4.75v6.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="11.5" cy="8.25" r="1" fill="currentColor"/><circle cx="11.5" cy="4" r="1" fill="currentColor"/>"##,
+    ),
+    (
+        "link-external",
+        r##"<path d="M9.5 2.25h4.25V6.5M13.5 2.5 8 8M11.75 9.5v3c0 .69-.56 1.25-1.25 1.25h-7c-.69 0-1.25-.56-1.25-1.25v-7c0-.69.56-1.25 1.25-1.25h3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>"##,
+    ),
+    (
+        "sync",
+        r##"<path d="M2.75 8a5.25 5.25 0 0 1 9.2-3.45M13.25 8a5.25 5.25 0 0 1-9.2 3.45M12.25 1.75v3h-3M3.75 14.25v-3h3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>"##,
+    ),
 ];
 
 const LOGO: &str = r##"<svg class="icon logo" viewBox="0 0 32 32" width="{size}" height="{size}" aria-hidden="true"><rect class="logo-tile" width="32" height="32" rx="8"/><circle cx="16" cy="16" r="8.5" fill="none" stroke="#fff" stroke-width="2.75"/><circle cx="16" cy="16" r="2.75" fill="#fff"/></svg>"##;

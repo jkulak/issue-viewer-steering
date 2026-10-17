@@ -23,21 +23,43 @@ use crate::issues::Issue;
 use crate::project::{Project, ProjectError, Snapshot};
 use crate::query;
 
+mod github;
+
+use github::{PullView, Shown};
+
 /// Done only grows; the most recent ones are what a glance needs.
 pub const DONE_LIMIT: usize = 10;
 /// What the summary counts as active now.
 const LATELY_SECONDS: i64 = 60 * 60;
 
-/// The projects a request names, in the order they are configured; every one when it names none.
+/// The projects and GitHub repositories a request names, in its order; none means every one.
 fn chosen(app: &App, request: &Incoming) -> Result<Vec<String>, Failure> {
     let mut names = Vec::new();
     for (key, value) in &request.query {
         if key == "project" && !value.is_empty() && !names.contains(value) {
-            find_project(app, value)?;
+            if value.contains('/') {
+                if !app.github.knows(value) {
+                    return Err(Failure::new(
+                        StatusCode::NOT_FOUND,
+                        format!("There is no GitHub repository “{value}” in GITHUB_REPOS."),
+                    ));
+                }
+            } else {
+                find_project(app, value)?;
+            }
             names.push(value.clone());
         }
     }
     Ok(names)
+}
+
+/// What a board polls: its issue files and branches, and GitHub's answer when it shows GitHub.
+fn signature(scope: &Scope, shown: &Shown) -> String {
+    let local = scope.signature();
+    match shown.signature() {
+        remote if remote.is_empty() => local,
+        remote => files::digest(&format!("{local}\n{remote}")),
+    }
 }
 
 /// Every project, which of them the board shows, and the repositories of the shown ones.
@@ -230,19 +252,32 @@ impl BranchView {
 
 #[derive(Serialize)]
 struct Waiting<'a> {
-    number: u64,
+    /// `#3`, or `owner/name#3` for an issue in another GitHub repository.
+    label: String,
+    href: String,
     title: &'a str,
 }
 
 #[derive(Serialize)]
 struct Card<'a> {
+    /// Unique on the page: the project or repository and the number.
+    id: String,
+    /// The issue file's project, or the GitHub repository.
     project: &'a str,
+    href: String,
+    /// On GitHub: opens in a new tab.
+    external: bool,
+    /// `issue`, or `pull` for a GitHub pull request no shown issue claims.
+    kind: &'static str,
+    /// Where a move goes; None for a card that cannot be moved.
+    status_url: Option<String>,
     writable: bool,
     number: u64,
     title: &'a str,
     /// The labels other than status words: the column already says those.
     labels: Vec<&'a str>,
     is_open: bool,
+    draft: bool,
     reason: Option<&'static str>,
     updated: i64,
     /// The last change to the file or to one of its branches.
@@ -254,6 +289,11 @@ struct Card<'a> {
     placement: &'static str,
     blockers: Vec<Waiting<'a>>,
     branches: Vec<BranchView>,
+    assignees: Vec<&'a str>,
+    /// Open pull requests that close the issue.
+    pulls: Vec<PullView<'a>>,
+    /// The card's own facts when it is a pull request.
+    pull: Option<PullView<'a>>,
 }
 
 #[derive(Serialize)]
@@ -282,7 +322,8 @@ fn card<'a>(
             .iter()
             .filter_map(|other| snapshot.by_number.get(&other.number))
             .map(|other| Waiting {
-                number: other.number,
+                label: format!("#{}", other.number),
+                href: format!("/{}/issues/{}", project.name(), other.number),
                 title: &other.title,
             })
             .collect()
@@ -295,9 +336,16 @@ fn card<'a>(
         .collect();
     branches.sort_by(|a, b| b.active.cmp(&a.active).then_with(|| a.name.cmp(&b.name)));
     let updated = views::seconds(issue.updated);
+    let writable = project.writable() && issue.editable();
+    let href = format!("/{}/issues/{}", project.name(), issue.number);
     let card = Card {
+        id: format!("{}-{}", project.name(), issue.number),
         project: project.name(),
-        writable: project.writable() && issue.editable(),
+        status_url: writable.then(|| format!("{href}/status")),
+        href,
+        external: false,
+        kind: "issue",
+        writable,
         number: issue.number,
         title: &issue.title,
         labels: issue
@@ -307,6 +355,7 @@ fn card<'a>(
             .filter(|label| !board::is_status_label(label))
             .collect(),
         is_open: issue.is_open,
+        draft: false,
         reason: issue.reason.map(|reason| reason.as_str()),
         updated,
         activity: branches
@@ -320,6 +369,9 @@ fn card<'a>(
         placement: placement.as_str(),
         blockers,
         branches,
+        assignees: Vec::new(),
+        pulls: Vec::new(),
+        pull: None,
     };
     (column, card)
 }
@@ -348,7 +400,11 @@ pub fn page(app: &App, request: &Incoming, only: Option<&str>) -> Answer {
         None => chosen(app, request)?,
     };
     let scope = Scope::new(app, &names);
-    let signature = scope.signature();
+    let shown = match only {
+        Some(_) => Shown::none(app),
+        None => Shown::new(app, &names),
+    };
+    let signature = signature(&scope, &shown);
     let snapshots: Vec<Option<Snapshot>> = scope
         .projects
         .iter()
@@ -391,6 +447,12 @@ pub fn page(app: &App, request: &Incoming, only: Option<&str>) -> Answer {
             }
             columns[column as usize].cards.push(card);
         }
+    }
+    for (column, card) in shown.cards(&parsed, now) {
+        if column != Column::Done && now.as_second() - card.activity <= LATELY_SECONDS {
+            active += 1;
+        }
+        columns[column as usize].cards.push(card);
     }
     for column in &mut columns {
         column.cards.sort_by(|a, b| {
@@ -465,9 +527,11 @@ pub fn page(app: &App, request: &Incoming, only: Option<&str>) -> Answer {
         names => listed.to_vec(),
         q => &text,
         all_done,
-        multiple => scope.shown.iter().filter(|shown| **shown).count() > 1,
+        multiple => scope.shown.iter().filter(|is_shown| **is_shown).count() + shown.count() > 1,
         heading,
         pickable,
+        pickable_github => shown.pickable(&names),
+        github => shown.notes(),
         columns => views::serialized(&columns),
         loose => views::serialized(&loose),
         summary,
@@ -479,7 +543,7 @@ pub fn page(app: &App, request: &Incoming, only: Option<&str>) -> Answer {
 /// What an open board polls to notice that an issue file or a branch changed.
 pub fn version(app: &App, request: &Incoming) -> Answer {
     let names = chosen(app, request)?;
-    let signature = Scope::new(app, &names).signature();
+    let signature = signature(&Scope::new(app, &names), &Shown::new(app, &names));
     Ok(json(StatusCode::OK, json!({ "version": signature })))
 }
 

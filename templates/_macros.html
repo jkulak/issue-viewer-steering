@@ -1,5 +1,9 @@
 {% macro state_icon(issue) -%}
-{% if issue.is_open -%}
+{% if issue.kind == "pull" and issue.draft -%}
+<span class="state-icon state-draft" title="Draft pull request">{{ icon("git-pull-request-draft") }}</span>
+{%- elif issue.kind == "pull" -%}
+<span class="state-icon state-open" title="Open pull request">{{ icon("git-pull-request") }}</span>
+{%- elif issue.is_open -%}
 <span class="state-icon state-open" title="Open">{{ icon("issue-opened") }}</span>
 {%- elif issue.reason == "not_planned" -%}
 <span class="state-icon state-not-planned" title="Closed as not planned">{{ icon("issue-not-planned") }}</span>

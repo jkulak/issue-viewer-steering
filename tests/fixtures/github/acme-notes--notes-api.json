@@ -1,0 +1,384 @@
+{
+ "data": {
+  "repository": {
+   "nameWithOwner": "acme-notes/notes-api",
+   "open": {
+    "totalCount": 5,
+    "nodes": [
+     {
+      "number": 16,
+      "title": "Rate-limit the export endpoint",
+      "url": "https://github.com/acme-notes/notes-api/issues/16",
+      "state": "OPEN",
+      "stateReason": null,
+      "updatedAt": "2026-10-14T09:00:00Z",
+      "author": {
+       "login": "dev-ada"
+      },
+      "assignees": {
+       "nodes": []
+      },
+      "labels": {
+       "nodes": []
+      },
+      "comments": {
+       "totalCount": 0
+      },
+      "blockedBy": {
+       "nodes": []
+      }
+     },
+     {
+      "number": 11,
+      "title": "Search notes by tag",
+      "url": "https://github.com/acme-notes/notes-api/issues/11",
+      "state": "OPEN",
+      "stateReason": null,
+      "updatedAt": "2026-10-13T15:20:00Z",
+      "author": {
+       "login": "dev-ada"
+      },
+      "assignees": {
+       "nodes": [
+        {
+         "login": "dev-ada"
+        }
+       ]
+      },
+      "labels": {
+       "nodes": [
+        {
+         "name": "enhancement"
+        }
+       ]
+      },
+      "comments": {
+       "totalCount": 3
+      },
+      "blockedBy": {
+       "nodes": []
+      }
+     },
+     {
+      "number": 12,
+      "title": "Sync notes between devices",
+      "url": "https://github.com/acme-notes/notes-api/issues/12",
+      "state": "OPEN",
+      "stateReason": null,
+      "updatedAt": "2026-10-12T11:00:00Z",
+      "author": {
+       "login": "dev-bo"
+      },
+      "assignees": {
+       "nodes": [
+        {
+         "login": "dev-bo"
+        }
+       ]
+      },
+      "labels": {
+       "nodes": [
+        {
+         "name": "in-progress"
+        },
+        {
+         "name": "enhancement"
+        }
+       ]
+      },
+      "comments": {
+       "totalCount": 0
+      },
+      "blockedBy": {
+       "nodes": []
+      }
+     },
+     {
+      "number": 13,
+      "title": "Share a note by link",
+      "url": "https://github.com/acme-notes/notes-api/issues/13",
+      "state": "OPEN",
+      "stateReason": null,
+      "updatedAt": "2026-10-11T08:45:00Z",
+      "author": {
+       "login": "dev-ada"
+      },
+      "assignees": {
+       "nodes": []
+      },
+      "labels": {
+       "nodes": [
+        {
+         "name": "blocked"
+        }
+       ]
+      },
+      "comments": {
+       "totalCount": 0
+      },
+      "blockedBy": {
+       "nodes": [
+        {
+         "number": 12,
+         "title": "Sync notes between devices",
+         "url": "https://github.com/acme-notes/notes-api/issues/12",
+         "state": "OPEN",
+         "repository": {
+          "nameWithOwner": "acme-notes/notes-api"
+         }
+        },
+        {
+         "number": 9,
+         "title": "Markdown preview",
+         "url": "https://github.com/acme-notes/notes-api/issues/9",
+         "state": "CLOSED",
+         "repository": {
+          "nameWithOwner": "acme-notes/notes-api"
+         }
+        }
+       ]
+      }
+     },
+     {
+      "number": 10,
+      "title": "Attachments over 10 MB fail to upload",
+      "url": "https://github.com/acme-notes/notes-api/issues/10",
+      "state": "OPEN",
+      "stateReason": null,
+      "updatedAt": "2026-10-10T17:30:00Z",
+      "author": {
+       "login": "dev-ada"
+      },
+      "assignees": {
+       "nodes": []
+      },
+      "labels": {
+       "nodes": [
+        {
+         "name": "bug"
+        }
+       ]
+      },
+      "comments": {
+       "totalCount": 1
+      },
+      "blockedBy": {
+       "nodes": []
+      }
+     }
+    ]
+   },
+   "closed": {
+    "nodes": [
+     {
+      "number": 9,
+      "title": "Markdown preview",
+      "url": "https://github.com/acme-notes/notes-api/issues/9",
+      "state": "CLOSED",
+      "stateReason": "COMPLETED",
+      "updatedAt": "2026-10-09T10:00:00Z",
+      "author": {
+       "login": "dev-ada"
+      },
+      "assignees": {
+       "nodes": []
+      },
+      "labels": {
+       "nodes": []
+      },
+      "comments": {
+       "totalCount": 0
+      },
+      "blockedBy": {
+       "nodes": []
+      }
+     },
+     {
+      "number": 8,
+      "title": "Keep the old sync protocol",
+      "url": "https://github.com/acme-notes/notes-api/issues/8",
+      "state": "CLOSED",
+      "stateReason": "NOT_PLANNED",
+      "updatedAt": "2026-10-08T10:00:00Z",
+      "author": {
+       "login": "dev-ada"
+      },
+      "assignees": {
+       "nodes": []
+      },
+      "labels": {
+       "nodes": []
+      },
+      "comments": {
+       "totalCount": 0
+      },
+      "blockedBy": {
+       "nodes": []
+      }
+     }
+    ]
+   },
+   "pullRequests": {
+    "totalCount": 4,
+    "nodes": [
+     {
+      "number": 14,
+      "title": "Add tag search",
+      "url": "https://github.com/acme-notes/notes-api/pull/14",
+      "isDraft": false,
+      "headRefName": "11-tag-search",
+      "updatedAt": "2026-10-15T08:00:00Z",
+      "reviewDecision": "REVIEW_REQUIRED",
+      "author": {
+       "login": "dev-ada"
+      },
+      "assignees": {
+       "nodes": []
+      },
+      "labels": {
+       "nodes": []
+      },
+      "comments": {
+       "totalCount": 1
+      },
+      "closingIssuesReferences": {
+       "nodes": [
+        {
+         "number": 11,
+         "repository": {
+          "nameWithOwner": "acme-notes/notes-api"
+         }
+        }
+       ]
+      },
+      "commits": {
+       "nodes": [
+        {
+         "commit": {
+          "statusCheckRollup": {
+           "state": "SUCCESS"
+          }
+         }
+        }
+       ]
+      }
+     },
+     {
+      "number": 15,
+      "title": "Device sync, first pass",
+      "url": "https://github.com/acme-notes/notes-api/pull/15",
+      "isDraft": true,
+      "headRefName": "12-device-sync",
+      "updatedAt": "2026-10-14T18:00:00Z",
+      "reviewDecision": null,
+      "author": {
+       "login": "dev-bo"
+      },
+      "assignees": {
+       "nodes": []
+      },
+      "labels": {
+       "nodes": []
+      },
+      "comments": {
+       "totalCount": 1
+      },
+      "closingIssuesReferences": {
+       "nodes": [
+        {
+         "number": 12,
+         "repository": {
+          "nameWithOwner": "acme-notes/notes-api"
+         }
+        }
+       ]
+      },
+      "commits": {
+       "nodes": [
+        {
+         "commit": {
+          "statusCheckRollup": {
+           "state": "PENDING"
+          }
+         }
+        }
+       ]
+      }
+     },
+     {
+      "number": 17,
+      "title": "Bump the JSON parser",
+      "url": "https://github.com/acme-notes/notes-api/pull/17",
+      "isDraft": false,
+      "headRefName": "bump-json-parser",
+      "updatedAt": "2026-10-13T07:00:00Z",
+      "reviewDecision": "APPROVED",
+      "author": {
+       "login": "dev-bo"
+      },
+      "assignees": {
+       "nodes": []
+      },
+      "labels": {
+       "nodes": [
+        {
+         "name": "dependencies"
+        }
+       ]
+      },
+      "comments": {
+       "totalCount": 1
+      },
+      "closingIssuesReferences": {
+       "nodes": []
+      },
+      "commits": {
+       "nodes": [
+        {
+         "commit": {
+          "statusCheckRollup": {
+           "state": "FAILURE"
+          }
+         }
+        }
+       ]
+      }
+     },
+     {
+      "number": 18,
+      "title": "Try a new note editor",
+      "url": "https://github.com/acme-notes/notes-api/pull/18",
+      "isDraft": true,
+      "headRefName": "try-new-editor",
+      "updatedAt": "2026-10-12T07:00:00Z",
+      "reviewDecision": null,
+      "author": {
+       "login": "dev-bo"
+      },
+      "assignees": {
+       "nodes": []
+      },
+      "labels": {
+       "nodes": []
+      },
+      "comments": {
+       "totalCount": 1
+      },
+      "closingIssuesReferences": {
+       "nodes": []
+      },
+      "commits": {
+       "nodes": [
+        {
+         "commit": {
+          "statusCheckRollup": null
+         }
+        }
+       ]
+      }
+     }
+    ]
+   }
+  }
+ }
+}
