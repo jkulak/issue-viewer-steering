@@ -7,7 +7,7 @@ use std::process::Command;
 use crate::support::{JSON, Viewer, issue_path, read};
 
 /// The cards in each column, as `project-number`, in the order shown.
-fn columns(html: &str) -> BTreeMap<String, Vec<String>> {
+pub fn columns(html: &str) -> BTreeMap<String, Vec<String>> {
     let column =
         regex::Regex::new(r#"<section class="board-column[^"]*" data-column="([a-z-]+)""#).unwrap();
     let card = regex::Regex::new(r#"id="card-([^"]+)""#).unwrap();
@@ -27,7 +27,7 @@ fn columns(html: &str) -> BTreeMap<String, Vec<String>> {
     found
 }
 
-fn card_html<'a>(html: &'a str, id: &str) -> &'a str {
+pub fn card_html<'a>(html: &'a str, id: &str) -> &'a str {
     let start = html
         .find(&format!(r#"id="card-{id}""#))
         .unwrap_or_else(|| panic!("no card {id}"));
@@ -291,7 +291,7 @@ fn a_move_is_refused_when_it_cannot_be_trusted_or_written() {
 }
 
 /// Run git in `directory` with a fixed author and none of this machine's configuration.
-fn git(directory: &Path, args: &[&str], date: Option<&str>) {
+pub fn git(directory: &Path, args: &[&str], date: Option<&str>) {
     let mut command = Command::new("git");
     command
         .arg("-C")
@@ -313,7 +313,7 @@ fn git(directory: &Path, args: &[&str], date: Option<&str>) {
 }
 
 /// A commit on a new branch, then back to main.
-fn branch_with_a_commit(directory: &Path, name: &str, date: Option<&str>) {
+pub fn branch_with_a_commit(directory: &Path, name: &str, date: Option<&str>) {
     git(directory, &["checkout", "--quiet", "-b", name], None);
     std::fs::write(directory.join(format!("{name}.txt")), "work\n").unwrap();
     git(directory, &["add", "."], None);

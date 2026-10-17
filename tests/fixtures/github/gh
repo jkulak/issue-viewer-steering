@@ -1,0 +1,38 @@
+#!/bin/sh
+# Stands in for the GitHub CLI in tests, answering from the JSON files next to it, so no test
+# reaches GitHub. `api graphql -f owner=X -f name=Y` prints X--Y.json and `repo list X` prints
+# X.repos.json; a missing file fails the way gh does.
+here=$(dirname "$0")
+case "$1 $2" in
+"api graphql")
+    owner=
+    name=
+    shift 2
+    while [ $# -gt 0 ]; do
+        if [ "$1" = -f ]; then
+            shift
+            case "$1" in
+            owner=*) owner=${1#owner=} ;;
+            name=*) name=${1#name=} ;;
+            esac
+        fi
+        shift
+    done
+    if [ -f "$here/$owner--$name.json" ]; then
+        cat "$here/$owner--$name.json"
+        exit 0
+    fi
+    echo "GraphQL: Could not resolve to a Repository with the name '$owner/$name'. (repository)" >&2
+    exit 1
+    ;;
+"repo list")
+    if [ -f "$here/$3.repos.json" ]; then
+        cat "$here/$3.repos.json"
+        exit 0
+    fi
+    echo "HTTP 404: Not Found (https://api.github.com/users/$3/repos)" >&2
+    exit 1
+    ;;
+esac
+echo "The fake gh does not know: gh $*" >&2
+exit 2

@@ -357,6 +357,7 @@ textarea.form-control { resize: vertical; }
 .state-icon { display: inline-flex; }
 .state-open { color: var(--fg-success); }
 .state-done { color: var(--fg-done); }
+.state-draft { color: var(--fg-muted); }
 .state-not-planned { color: var(--fg-muted); }
 .task-progress { display: inline-flex; align-items: center; gap: 4px; }
 .progress-track { stroke: var(--border); }
@@ -619,6 +620,13 @@ textarea.form-control { resize: vertical; }
 .board-loose { margin-top: 24px; }
 .board-loose .Box-title { display: inline-flex; align-items: center; gap: 6px; }
 .board-loose-row { margin: 0; }
+.board-card-external { margin-top: 3px; color: var(--fg-muted); }
+.board-card-people { display: inline-flex; gap: 2px; margin-left: auto; }
+.avatar.avatar-xs { width: 20px; height: 20px; font-size: 11px; box-shadow: none; }
+.board-pull-link { color: inherit; font-weight: 600; }
+.board-review-approved, .board-checks-passing { color: var(--fg-success); }
+.board-review-changes-requested, .board-checks-failing { color: var(--fg-danger); }
+.board-checks-pending { color: var(--fg-attention); }
 
 /* Narrow screens */
 

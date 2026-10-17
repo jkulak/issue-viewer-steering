@@ -28,8 +28,9 @@ else
 fi
 
 # The data directory sits inside this repository; the ceiling keeps the board from reading this
-# repository's own branches as work on the synthetic issues.
-GIT_CEILING_DIRECTORIES="$data" \
+# repository's own branches as work on the synthetic issues. The gh the viewer finds first on the
+# PATH is the fake one, which answers from synthetic JSON and never reaches GitHub.
+GIT_CEILING_DIRECTORIES="$data" PATH="$root/tests/fixtures/github:$PATH" GITHUB_REPOS="acme-notes/*" \
     PROJECTS="demo=$data/demo,archive=$data/archive:ro" OPEN_ROOT="$data" ALLOWED_HOSTS="$host" \
     TZ=UTC REFRESH_SECONDS=1 LOG_LEVEL=WARNING PORT=0 \
     "$binary" --env-file /dev/null >"$log" 2>&1 &

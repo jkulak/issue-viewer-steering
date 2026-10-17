@@ -13,6 +13,10 @@
     <span><strong class="js-count-in-progress">{{ summary.in_progress }}</strong> in progress</span>
     <span class="meta-dot">·</span>
     <span><strong>{{ summary.active }}</strong> active in the last hour</span>
+    {% if github and github.read %}
+    <span class="meta-dot">·</span>
+    <span class="muted" title="{{ absolute(github.read) }}">GitHub read {{ ago(github.read) }}</span>
+    {% endif %}
   </p>
 </div>
 
@@ -40,6 +44,18 @@
             </label>
             {% endfor %}
           </div>
+          {% if pickable_github %}
+          <div class="menu-title">GitHub</div>
+          <div class="menu-list">
+            {% for item in pickable_github %}
+            <label class="menu-item label-option">
+              <input type="checkbox" name="project" value="{{ item.name }}"{% if item.chosen %} checked{% endif %}>
+              <span class="menu-check">{{ icon("check") }}</span>
+              <span class="label-option-name">{{ item.name }}</span>
+            </label>
+            {% endfor %}
+          </div>
+          {% endif %}
           {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
           <div class="menu-footer">
             <a class="btn btn-sm" href="/-/board">All projects</a>
@@ -55,6 +71,24 @@
 <a class="clear-query" href="{{ clear_url }}">{{ icon("x") }} Clear the filter</a>
 {% endif %}
 
+{% if github %}
+{% if github.reading %}
+<div class="flash flash-info js-github-reading" role="status">{{ icon("sync") }} Reading GitHub. The board shows its issues as soon as the answer arrives.</div>
+{% endif %}
+{% for error in github.errors %}
+<div class="flash flash-error" role="alert">{{ icon("alert") }} <span>Could not read <strong>{{ error.name }}</strong> from GitHub: {{ error.message }}{% if error.kept %} Its cards are from the last answer that could be read.{% endif %}</span></div>
+{% endfor %}
+{% for problem in github.problems %}
+<div class="flash flash-error" role="alert">{{ icon("alert") }} <span>{{ problem }}</span></div>
+{% endfor %}
+{% for name in github.missing %}
+<div class="flash flash-warn">{{ icon("alert") }} <span>GitHub listed no repository called <strong>{{ name }}</strong>; archived repositories and forks are left out.</span></div>
+{% endfor %}
+{% for limit in github.limits %}
+<div class="flash flash-warn">{{ icon("alert") }} <span>{{ limit }}</span></div>
+{% endfor %}
+{% endif %}
+
 <div class="board js-board">
   {% for column in columns %}
   <section class="board-column{% if column.needs_you %} board-column-attention{% endif %}" data-column="{{ column.key }}" data-hidden="{{ column.hidden }}" aria-labelledby="column-{{ column.key }}">
@@ -65,17 +99,18 @@
     <p class="board-column-hint">{% if column.needs_you %}{{ icon("alert", 12) }} {% endif %}{{ column.hint }}</p>
     <ol class="board-cards js-drop" data-column="{{ column.key }}">
       {% for card in column.cards %}
-      <li class="board-card{% if card.writable %} js-card{% endif %}" id="card-{{ card.project }}-{{ card.number }}" data-status-url="/{{ card.project }}/issues/{{ card.number }}/status" data-version="{{ card.version }}"{% if card.writable %} draggable="true"{% endif %}>
+      <li class="board-card{% if card.writable %} js-card{% endif %}{% if card.external %} board-card-github{% endif %}" id="card-{{ card.id }}"{% if card.status_url %} data-status-url="{{ card.status_url }}" data-version="{{ card.version }}"{% endif %}{% if card.writable %} draggable="true"{% endif %}>
         <div class="board-card-top">
           {% if multiple %}<span class="board-card-project">{{ icon("repo", 12) }}{{ card.project }}</span>{% endif %}
           <span class="board-card-number">#{{ card.number }}</span>
           {% if card.placement == "inferred" %}<span class="Label board-card-inferred js-inferred" title="No status label: a branch for it is being worked on">from git</span>{% endif %}
+          {% if card.placement == "pull-request" %}<span class="Label board-card-inferred" title="No status label further right: an open pull request closes it">from PR</span>{% endif %}
           {% if card.writable %}
           <details class="menu js-menu board-move">
             <summary class="btn-octicon" aria-label="Move #{{ card.number }}">{{ icon("kebab") }}</summary>
             <div class="menu-overlay menu-right">
               <div class="menu-title">Move to</div>
-              <form class="menu-list" method="post" action="/{{ card.project }}/issues/{{ card.number }}/status">
+              <form class="menu-list" method="post" action="{{ card.status_url }}">
                 <input type="hidden" name="_csrf" value="{{ csrf_token }}">
                 <input type="hidden" name="version" value="{{ card.version }}">
                 <input type="hidden" name="back" value="{{ back }}">
@@ -87,13 +122,29 @@
           </details>
           {% endif %}
         </div>
-        <a class="board-card-title" href="/{{ card.project }}/issues/{{ card.number }}"><span class="js-state">{{ state_icon(card) }}</span><span>{{ card.title }}</span></a>
+        <a class="board-card-title" href="{{ card.href }}"{% if card.external %} target="_blank" rel="noopener noreferrer"{% endif %}><span class="js-state">{{ state_icon(card) }}</span><span>{{ card.title }}</span>{% if card.external %}{{ icon("link-external", 12, "board-card-external") }}<span class="sr-only">(on GitHub, opens in a new tab)</span>{% endif %}</a>
         {% if card.labels %}
         <div class="board-card-labels">{% for label in card.labels %}{{ label_pill(label) }} {% endfor %}</div>
         {% endif %}
         {% if card.blockers %}
-        <div class="board-card-note blocked-note">{{ icon("blocked", 12) }}Blocked by {% for blocker in card.blockers %}<a href="/{{ card.project }}/issues/{{ blocker.number }}" title="{{ blocker.title }}">#{{ blocker.number }}</a>{% if not loop.last %}, {% endif %}{% endfor %}</div>
+        <div class="board-card-note blocked-note">{{ icon("blocked", 12) }}Blocked by {% for blocker in card.blockers %}<a href="{{ blocker.href }}" title="{{ blocker.title }}"{% if card.external %} target="_blank" rel="noopener noreferrer"{% endif %}>{{ blocker.label }}</a>{% if not loop.last %}, {% endif %}{% endfor %}</div>
         {% endif %}
+        {% if card.pull %}{% set pull = card.pull %}
+        <div class="board-branch board-pull">
+          {{ icon("git-branch", 12) }}<code class="board-branch-name">{{ pull.branch }}</code>
+          {% if pull.draft %}<span class="board-branch-fact">draft</span>{% endif %}
+          {% if pull.review %}<span class="board-branch-fact board-review-{{ pull.review_key }}">{{ pull.review }}</span>{% endif %}
+          {% if pull.checks %}<span class="board-branch-fact board-checks-{{ pull.checks }}">checks {{ pull.checks }}</span>{% endif %}
+        </div>
+        {% endif %}
+        {% for pull in card.pulls %}
+        <div class="board-branch board-pull">
+          {{ icon("git-pull-request-draft" if pull.draft else "git-pull-request", 12) }}<a class="board-pull-link" href="{{ pull.url }}" target="_blank" rel="noopener noreferrer" title="{{ pull.title }}">{{ pull.label }}</a>
+          {% if pull.draft %}<span class="board-branch-fact">draft</span>{% endif %}
+          {% if pull.review %}<span class="board-branch-fact board-review-{{ pull.review_key }}">{{ pull.review }}</span>{% endif %}
+          {% if pull.checks %}<span class="board-branch-fact board-checks-{{ pull.checks }}">checks {{ pull.checks }}</span>{% endif %}
+        </div>
+        {% endfor %}
         {% for branch in card.branches %}
         <div class="board-branch{% if branch.working %} board-branch-working{% endif %}">
           {{ icon("git-branch", 12) }}<code class="board-branch-name">{{ branch.name }}</code>
@@ -107,6 +158,7 @@
           <span title="{{ absolute(card.updated) }}">updated {{ ago(card.updated) }}</span>
           {% if card.tasks_total %}<span class="meta-item task-progress">{{ progress(card.tasks_done, card.tasks_total) }}{{ card.tasks_done }}/{{ card.tasks_total }}</span>{% endif %}
           {% if card.comment_count %}<span class="meta-item" aria-label="{{ card.comment_count }} comments">{{ icon("comment", 12) }}{{ card.comment_count }}</span>{% endif %}
+          {% if card.assignees %}<span class="board-card-people">{% for person in card.assignees %}<span class="avatar avatar-xs" style="{{ avatar_style(person) }}" role="img" aria-label="Assigned to {{ person }}" title="Assigned to {{ person }}">{{ person[:1]|upper }}</span>{% endfor %}</span>{% endif %}
         </div>
       </li>
       {% endfor %}

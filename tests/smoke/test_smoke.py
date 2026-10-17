@@ -6,6 +6,7 @@ synthetic issues this module writes into the shared volume.
 
 import json
 import os
+import time
 import urllib.request
 from pathlib import Path
 
@@ -80,3 +81,16 @@ def test_the_board_shows_both_projects_in_its_columns():
     status, version, _ = get("/-/board/version")
     assert status == 200
     assert "version" in json.loads(version)
+
+
+def test_the_board_shows_github_issues_read_through_gh():
+    # The viewer reads GitHub in the background from the start; the fake gh answers at once.
+    deadline = time.monotonic() + 10
+    while True:
+        _, body, _ = get("/-/board?project=acme-notes/notes-api")
+        if "Reading GitHub." not in body or time.monotonic() > deadline:
+            break
+        time.sleep(0.2)
+    assert 'id="card-github/acme-notes/notes-api/11"' in body
+    assert 'href="https://github.com/acme-notes/notes-api/issues/11"' in body
+    assert "GitHub read " in body

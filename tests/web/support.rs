@@ -8,7 +8,7 @@ use axum::Router;
 use axum::body::Body;
 use axum::http::{HeaderMap, Request, header};
 use http_body_util::BodyExt;
-use issue_viewer::config::{OpenRoot, ProjectConfig, Settings};
+use issue_viewer::config::{self, OpenRoot, ProjectConfig, Settings};
 use issue_viewer::web::{self, App};
 use tempfile::TempDir;
 use tokio::runtime::Runtime;
@@ -78,6 +78,8 @@ pub struct Viewer {
     pub root: PathBuf,
     pub demo: PathBuf,
     pub archive: PathBuf,
+    /// The fake gh and the answers it gives, when GitHub is on.
+    pub github: PathBuf,
     _directory: TempDir,
 }
 
@@ -90,21 +92,35 @@ pub enum Open {
 impl Viewer {
     /// demo (read-write) and archive (read-only), with Open off.
     pub fn new() -> Self {
-        Viewer::build(Open::Off)
+        Viewer::build(Open::Off, None)
     }
 
     /// demo only, with the temporary directory as the open root.
     pub fn with_open_root(open: Open) -> Self {
-        Viewer::build(open)
+        Viewer::build(open, None)
     }
 
-    fn build(open: Open) -> Self {
+    /// demo and archive, and `GITHUB_REPOS` set to `repositories`, answered by the fake gh in
+    /// `tests/fixtures/github`. `{root}` in it is the temporary directory. Nothing is read from
+    /// GitHub until `refresh_github` or a board asks.
+    pub fn with_github(repositories: &str) -> Self {
+        Viewer::build(Open::Off, Some(repositories))
+    }
+
+    fn build(open: Open, repositories: Option<&str>) -> Self {
         let directory = tempfile::tempdir().unwrap();
         // The canonical path, so what Open resolves matches the configured projects on macOS too.
         let root = directory.path().canonicalize().unwrap();
         let demo = copy_fixture("demo", &root.join("demo"));
         let archive = copy_fixture("archive", &root.join("archive"));
+        let github = root.join("github");
         let mut settings = Settings::default();
+        if let Some(repositories) = repositories {
+            copy_fixture("github", &github);
+            let repositories = repositories.replace("{root}", &root.to_string_lossy());
+            settings.github = config::parse_github(&repositories).unwrap();
+            settings.gh = github.join("gh");
+        }
         let project = |name: &str, path: &Path, read_only| ProjectConfig {
             name: name.into(),
             path: path.to_path_buf(),
@@ -138,8 +154,14 @@ impl Viewer {
             root,
             demo,
             archive,
+            github,
             _directory: directory,
         }
+    }
+
+    /// Read GitHub now, the way the background refresh does.
+    pub fn refresh_github(&self) {
+        self.app.github.refresh();
     }
 
     pub fn token(&self) -> String {
