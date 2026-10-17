@@ -45,7 +45,7 @@ const PROJECTS_FIELD: Field = Field {
     name: "project",
     kind: "string",
     list: true,
-    description: "The projects to show; every project when there is none",
+    description: "The projects, or GitHub repositories as owner/name, to show; all of them when there is none",
 };
 const FILTER_FIELD: Field = field(
     "q",

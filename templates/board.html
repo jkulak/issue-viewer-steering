@@ -101,7 +101,7 @@
       {% for card in column.cards %}
       <li class="board-card{% if card.writable %} js-card{% endif %}{% if card.external %} board-card-github{% endif %}" id="card-{{ card.id }}"{% if card.status_url %} data-status-url="{{ card.status_url }}" data-version="{{ card.version }}"{% endif %}{% if card.writable %} draggable="true"{% endif %}>
         <div class="board-card-top">
-          {% if multiple %}<span class="board-card-project">{{ icon("repo", 12) }}{{ card.project }}</span>{% endif %}
+          {% if multiple %}<span class="board-card-project" title="{{ card.project }}">{{ icon("repo", 12) }}<span class="board-card-project-name">{{ card.project }}</span></span>{% endif %}
           <span class="board-card-number">#{{ card.number }}</span>
           {% if card.placement == "inferred" %}<span class="Label board-card-inferred js-inferred" title="No status label: a branch for it is being worked on">from git</span>{% endif %}
           {% if card.placement == "pull-request" %}<span class="Label board-card-inferred" title="No status label further right: an open pull request closes it">from PR</span>{% endif %}

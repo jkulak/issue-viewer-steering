@@ -600,14 +600,16 @@ textarea.form-control { resize: vertical; }
 .board-card.dragging { opacity: .5; }
 .board-card.moving { opacity: .7; }
 .board-card-top { display: flex; align-items: center; gap: 6px; min-height: 24px; color: var(--fg-muted); font-size: 12px; }
-.board-card-project { display: inline-flex; align-items: center; gap: 4px; max-width: 50%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.board-card-inferred { font-size: 11px; }
+.board-card-project { display: inline-flex; align-items: center; gap: 4px; min-width: 0; }
+.board-card-project-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.board-card-number { flex-shrink: 0; }
+.board-card-inferred { flex-shrink: 0; font-size: 11px; }
 .board-move { margin-left: auto; }
 .board-move .btn-octicon { padding: 2px 4px; }
 .board-card-title { display: flex; align-items: flex-start; gap: 6px; margin: 2px 0 4px; color: var(--fg); font-weight: 600; overflow-wrap: anywhere; }
 .board-card-title .state-icon { padding-top: 2px; }
 .board-card-labels { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 4px; }
-.board-card-note { display: flex; align-items: center; gap: 4px; font-size: 12px; }
+.board-card-note { display: flex; flex-wrap: wrap; align-items: center; gap: 0 4px; font-size: 12px; }
 .board-card-meta { display: flex; flex-wrap: wrap; align-items: center; color: var(--fg-muted); font-size: 12px; }
 .board-card-meta .meta-item { margin-left: 10px; }
 .board-branch { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; margin: 4px 0; color: var(--fg-muted); font-size: 12px; }

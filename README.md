@@ -182,6 +182,36 @@ moving to Done closes the issue and moving out of Done reopens it. A card whose 
 the board was loaded is not moved, and read-only projects cannot be moved at all. The search box
 takes the same queries as the issue list.
 
+### GitHub on the board
+
+With `GITHUB_REPOS` set, the board also shows the issues and pull requests of GitHub
+repositories, next to the issue files. The viewer holds no token: it runs the GitHub CLI, `gh`,
+which has to be installed and signed in (`gh auth login`) for the user the viewer runs as, and
+only reads.
+
+```
+GITHUB_REPOS=acme-notes/notes-api=/Users/you/dev/notes-api,acme-notes/*
+```
+
+- `owner/name` is one repository, `owner/*` every repository of that user or organisation that
+  is neither archived nor a fork (up to 100), and `=/absolute/path` names the repository's local
+  checkout, whose numbered branches then count as work like an issue file's.
+- Issues go to columns the same way: their labels name the column, a closed issue is in Done.
+  An open pull request that closes an issue (`Closes #11`) puts it in Review, or in In progress
+  while it is a draft or has changes requested, marked "from PR", unless a label already puts it
+  further right. The card lists those pull requests with their review and checks.
+- A pull request that closes none of the issues on the board is a card of its own.
+- Cards show the repository, labels, assignees, open blockers and comments, and link to GitHub
+  in a new tab. They cannot be dragged or moved: change them on GitHub.
+- The Projects menu lists the repositories, and `?project=owner/name` shows one of them.
+
+The board never waits for GitHub. While a board is open, the viewer reads every repository again
+in the background at most every `GITHUB_REFRESH_SECONDS` (one GraphQL query each, four at a time),
+and the board reloads when the answer changed. The first board after a start says it is reading
+GitHub. A repository that cannot be read is named with gh's message, and its cards stay as they
+were last read. Each query reads the 100 most recently updated open issues, the 20 most recently
+closed and 50 open pull requests; a repository with more says so.
+
 ## Configuration
 
 | Variable | Default | Meaning |
@@ -193,6 +223,8 @@ takes the same queries as the issue list.
 | `TZ` | the system's | time zone for comment timestamps and dates, for example `Europe/Warsaw` |
 | `REFRESH_SECONDS` | `3` | how often open pages check for changes; `0` turns it off |
 | `LOG_LEVEL` | `INFO` | `DEBUG`, `INFO`, `WARNING` or `ERROR`; the log goes to stdout |
+| `GITHUB_REPOS` | – | `owner/name[=/absolute/checkout]` or `owner/*`, comma-separated: GitHub repositories for the board, read with `gh` |
+| `GITHUB_REFRESH_SECONDS` | `120` | how often the board reads GitHub again while it is open; at least `30` |
 
 ## Security
 
@@ -210,6 +242,9 @@ There is no login, so the viewer relies on where requests come from:
   refused, a symbolic link may not lead out of the root, and opening a folder is a write like any
   other, with the same origin and token checks.
 - A request body larger than 4 MB is refused.
+- GitHub is read through `gh` with the sign-in it already has; the viewer never sees a token,
+  only reads, and runs `gh` without a terminal, so it cannot prompt. Every `gh` and `git` call
+  has a time limit.
 - Pages load nothing from outside the viewer: no CDN, no web fonts, no external images. The
   Content Security Policy enforces it.
 
