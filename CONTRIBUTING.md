@@ -2,12 +2,24 @@
 
 ## Work
 
-- Work is tracked in `tasks/NNN-slug.md`, one file per issue, in the same format this app reads.
-  `tasks/` is kept out of git.
-- Every change goes on a branch named after its task, `NNN-short-slug`, and reaches `main` through
-  a pull request that a person reviews and merges. Nothing is committed or pushed to `main`
-  directly.
-- A pull request says what changed and why, and names its task file.
+- Work is tracked in GitHub issues, one task per issue, whose body holds the description, the
+  acceptance criteria and the Definition of Done. An issue labelled `backlog` waits until it is
+  picked.
+- Every change goes on a branch named after its issue, `N-short-slug`, and reaches `main` through
+  a pull request. Nothing is committed or pushed to `main` directly.
+- A pull request says what changed and why, and closes its issue with `Closes #N`.
+- There is no review step; the Definition of Done is the gate. Once it is met, the pull request
+  is merged with `gh pr merge --squash`, or `--rebase` when every commit stands on its own.
+  `main` is one straight line: the repository allows no merge commits, and a merged branch is
+  deleted.
+
+## Definition of Done
+
+- [ ] `make check` passes
+- [ ] `openapi.json` regenerated with `make openapi` and committed, after a change to the routes
+- [ ] `CHANGELOG.md` updated
+- [ ] No new dependency that has not been approved
+- [ ] Nothing secret or personal in the diff, checked rather than assumed
 
 ## Code
 
@@ -19,7 +31,10 @@
 - A new dependency, runtime or dev, is a decision: name it, say why, who maintains it and under
   what licence, and get it approved before adding it.
 - The pages must not load anything from outside the viewer.
-- Comments and commit messages explain why, not what.
+- Comments explain why, not what.
+- A commit message is a short imperative subject, around 50 characters, with no prefix and no
+  full stop. A body of two or three plain sentences follows only when the why does not fit in
+  the subject. One logical change per commit.
 
 ## Tests
 
@@ -30,7 +45,7 @@
   `ticking_a_checkbox_changes_one_character`, not `task_2`.
 - Test data is synthetic. No real page, name, e-mail address or hostname goes into a test, a
   fixture, the docs or a commit.
-- `make check` runs what CI runs.
+- `make check` runs every lint and test there is.
 
 ## Releases
 
