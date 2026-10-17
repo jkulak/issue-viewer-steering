@@ -20,8 +20,9 @@ Versions follow CalVer, `YYYY.MM.PATCH`, tagged `vYYYY.MM.PATCH`.
 - Open pages refresh when a file changes on disk.
 - Protection for a login-less local app: 127.0.0.1 only, Host allowlist, same-origin checks and a
   CSRF token on every write, a strict Content Security Policy, nothing loaded from elsewhere.
-- Makefile; unit, web, smoke and Playwright tests; GitHub Actions CI on pull requests, tags and
-  manual runs; published `openapi.json`.
+- Makefile; unit, web, smoke and Playwright tests; published `openapi.json`.
+- `make how` lists the steps of using the viewer, `make env` creates `.env` from `.env.example`,
+  and `make ui` (or `make tui`) starts the viewer and opens it in the browser.
 - **Open**: with `OPEN_ROOT` set, a folder picker on every page opens any issue directory under
   that root as a project until the viewer restarts, read-only when the root ends in `:ro`.
 - **Board**: a kanban board for all projects, a chosen few, or one, with Backlog, Selected for
@@ -69,5 +70,7 @@ Versions follow CalVer, `YYYY.MM.PATCH`, tagged `vYYYY.MM.PATCH`.
 
 ### Removed
 
+- The GitHub Actions workflow. The viewer only runs on this machine, so `make check`, run locally
+  before a merge, is the gate.
 - The Docker image, `compose.yaml` and the generated mounts; the viewer reads the directories in
   `PROJECTS` and `OPEN_ROOT` directly.

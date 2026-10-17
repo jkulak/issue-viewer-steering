@@ -399,10 +399,7 @@ mod tests {
 
     #[test]
     fn a_slug_is_short_ascii_kebab_case() {
-        assert_eq!(
-            slugify("Zażółć gęślą jaźń: łódź!"),
-            "zazolc-gesla-jazn-lodz"
-        );
+        assert_eq!(slugify("Ł and ł: crème brûlée!"), "l-and-l-creme-brulee");
         assert_eq!(slugify("   "), "issue");
         let long = slugify(&"word ".repeat(40));
         assert!(long.len() <= 60);

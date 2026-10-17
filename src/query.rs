@@ -499,7 +499,7 @@ mod tests {
     }
 
     #[test]
-    fn the_sort_orders() {
+    fn each_sort_qualifier_orders_the_issues_its_own_way() {
         assert_eq!(numbers("sort:created-asc"), [1, 2, 3, 4, 5]);
         assert_eq!(numbers("sort:updated-desc"), [1, 5, 3, 4, 2]);
         assert_eq!(numbers("sort:updated-asc"), [2, 4, 3, 5, 1]);

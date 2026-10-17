@@ -98,7 +98,7 @@ def test_editing_the_title_in_place(page):
     assert "# #5 Dark theme that follows the system" in text
 
 
-def test_editing_the_description(page):
+def test_editing_the_description_changes_the_page_and_the_file(page):
     page.goto("/demo/issues/7")
     page.locator("#description summary.btn-octicon").click()
     page.locator("#description .js-edit-open").click()
