@@ -149,6 +149,8 @@ pub enum Placement {
     Inferred,
     /// Nothing says anything: the issue waits for a decision.
     Undecided,
+    /// An open pull request that closes the issue says how far it got.
+    PullRequest,
 }
 
 impl Placement {
@@ -157,6 +159,7 @@ impl Placement {
             Placement::Stated => "stated",
             Placement::Inferred => "inferred",
             Placement::Undecided => "undecided",
+            Placement::PullRequest => "pull-request",
         }
     }
 }

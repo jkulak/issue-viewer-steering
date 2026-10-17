@@ -26,6 +26,7 @@ use minijinja::context;
 use crate::config::Settings;
 use crate::files::hex;
 use crate::git;
+use crate::github;
 use crate::project::Registry;
 
 pub const CSP: &str = "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; \
@@ -38,6 +39,8 @@ pub struct App {
     pub registry: Registry,
     /// What the repositories of the projects say, kept for a few seconds: boards poll it.
     pub git: git::Cache,
+    /// What GitHub said about the repositories in `GITHUB_REPOS`, refreshed while a board looks.
+    pub github: Arc<github::Hub>,
     csrf_token: String,
     templates: views::Templates,
 }
@@ -49,6 +52,7 @@ impl App {
         Arc::new(App {
             registry: Registry::new(settings.projects.clone()),
             git: git::Cache::new(Duration::from_secs(4)),
+            github: Arc::new(github::Hub::new(&settings)),
             settings,
             // A new token on every start: a page loaded before a restart has to be reloaded to
             // change anything, which is what its message says.
