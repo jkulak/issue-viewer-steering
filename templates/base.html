@@ -26,16 +26,20 @@
       <a class="context-crumb context-current" href="/">Issue viewer</a>
       {% endif %}
     </nav>
-    {% if can_open %}<a class="btn btn-sm app-header-open" href="/-/open">{{ icon("folder") }}<span>Open</span></a>{% endif %}
+    <span class="app-header-actions">
+      <a class="btn btn-sm" href="/-/board"{% if section == "board" and not project %} aria-current="page"{% endif %}>{{ icon("project") }}<span>Board</span></a>
+      {% if can_open %}<a class="btn btn-sm app-header-open" href="/-/open">{{ icon("folder") }}<span>Open</span></a>{% endif %}
+    </span>
   </div>
   {% if project %}
   <nav class="underline-nav" aria-label="Project">
     <a class="underline-nav-item" href="/{{ project.name }}/issues"{% if section == "issues" %} aria-current="page"{% endif %}>{{ icon("issue-opened") }}<span>Issues</span><span class="Counter">{{ open_total }}</span></a>
     <a class="underline-nav-item" href="/{{ project.name }}/labels"{% if section == "labels" %} aria-current="page"{% endif %}>{{ icon("tag") }}<span>Labels</span><span class="Counter">{{ label_total }}</span></a>
+    <a class="underline-nav-item" href="/{{ project.name }}/board"{% if section == "board" %} aria-current="page"{% endif %}>{{ icon("project") }}<span>Board</span></a>
   </nav>
   {% endif %}
 </header>
-<main class="container" id="main">
+<main class="container{% block main_class %}{% endblock %}" id="main">
 {% block content %}{% endblock %}
 </main>
 <footer class="app-footer">

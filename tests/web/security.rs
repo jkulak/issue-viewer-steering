@@ -175,6 +175,7 @@ fn every_route_in_the_schema_answers() {
                 ("part", "description"),
                 ("line", "0"),
                 ("checked", "1"),
+                ("status", "testing"),
                 ("version", version.as_str()),
             ];
             viewer.post(&url, &fields)

@@ -19,9 +19,10 @@ use crate::issues::Issue;
 use crate::project::{Project, Snapshot};
 use crate::{icons, labels, timefmt};
 
-const TEMPLATES: [(&str, &str); 9] = [
+const TEMPLATES: [(&str, &str); 10] = [
     ("_macros.html", include_str!("../../templates/_macros.html")),
     ("base.html", include_str!("../../templates/base.html")),
+    ("board.html", include_str!("../../templates/board.html")),
     ("error.html", include_str!("../../templates/error.html")),
     ("issue.html", include_str!("../../templates/issue.html")),
     ("issues.html", include_str!("../../templates/issues.html")),

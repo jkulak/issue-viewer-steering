@@ -137,6 +137,28 @@ pub fn relationships(description: &str) -> (Vec<u64>, Vec<u64>) {
     (Vec::new(), Vec::new())
 }
 
+/// Issue numbers from a front matter list: `blocked_by: [3, 5]`, `depends_on: ["#3"]` or `"3, 5"`.
+pub fn listed_numbers(value: Option<&Yaml>) -> Vec<u64> {
+    let items: Vec<&Yaml> = match value {
+        Some(Yaml::Array(items)) => items.iter().collect(),
+        Some(other) => vec![other],
+        None => Vec::new(),
+    };
+    let mut numbers = Vec::new();
+    for item in items {
+        match item {
+            Yaml::Integer(number) => push_unique(&mut numbers, u64::try_from(*number).ok()),
+            Yaml::String(text) => push_unique(
+                &mut numbers,
+                text.split(',')
+                    .filter_map(|part| part.trim().trim_start_matches('#').parse().ok()),
+            ),
+            _ => {}
+        }
+    }
+    numbers
+}
+
 pub fn slugify(title: &str) -> String {
     const LIMIT: usize = 60;
     let text = title.replace('ł', "l").replace('Ł', "L").replace('ß', "ss");
@@ -268,7 +290,11 @@ pub fn build(path: &Path, number: u64, content: FileText, modified: Timestamp) -
     };
     let state = state.trim().to_lowercase();
     let (is_open, reason) = classify(&state);
-    let (depends_on, blocks) = relationships(parsed.description_text());
+    let (mut depends_on, blocks) = relationships(parsed.description_text());
+    // Some projects keep the dependencies in the front matter instead of a `**Depends on:**` line.
+    for key in ["blocked_by", "depends_on"] {
+        push_unique(&mut depends_on, listed_numbers(front.get(key)));
+    }
     let (tasks_done, tasks_total) = task_counts(parsed.description_text());
     let labels = normalise_labels(front.get("labels"));
     Issue {
@@ -358,6 +384,17 @@ mod tests {
             relationships("```\n**Depends on:** #1\n```\n"),
             (vec![], vec![])
         );
+    }
+
+    #[test]
+    fn dependencies_in_the_front_matter_count_with_the_depends_on_line() {
+        let issue = issue(
+            "---\ntitle: x\nblocked_by: [3, 5]\ndepends_on: \"#6, 3\"\n---\n\n\
+             **Depends on:** #2 · **Blocks:** –\n",
+        );
+        assert_eq!(issue.depends_on, [2, 3, 5, 6]);
+        assert!(listed_numbers(Some(&Yaml::Array(vec![Yaml::Integer(-1)]))).is_empty());
+        assert!(listed_numbers(None).is_empty());
     }
 
     #[test]

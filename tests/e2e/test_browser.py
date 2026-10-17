@@ -187,3 +187,33 @@ def test_opening_a_folder_from_the_header(page):
     expect(page.get_by_role("link", name="Another old idea")).to_be_visible()
     page.goto("/")
     expect(page.locator('a[href="/notes-app/issues"]').first).to_be_visible()
+
+
+def test_dragging_a_card_to_another_column_rewrites_its_status_label(page):
+    page.goto("/demo/board")
+    backlog = page.locator('.board-column[data-column="backlog"] .js-column-count')
+    before = int(backlog.inner_text())
+    card = page.locator("#card-demo-4")
+    version = card.get_attribute("data-version")
+    card.drag_to(page.locator('.js-drop[data-column="testing"]'))
+    # The card takes the file's new version once the write is done.
+    expect(card).not_to_have_attribute("data-version", version)
+    expect(page.locator('.js-drop[data-column="testing"] #card-demo-4')).to_be_visible()
+    expect(backlog).to_have_text(str(before - 1))
+    assert "labels: [bug, testing]" in issue_file(4).read_text()
+
+
+def test_moving_a_card_to_done_from_its_menu_closes_the_issue(page):
+    page.goto("/demo/board")
+    page.locator("#card-demo-4 .board-move summary").click()
+    page.locator("#card-demo-4 .js-move", has_text="Done").click()
+    expect(page.locator('.js-drop[data-column="done"] #card-demo-4')).to_be_visible()
+    expect(page).to_have_url(re.compile(r"/demo/board$"))
+    assert "state: done" in issue_file(4).read_text()
+
+
+def test_the_board_of_a_read_only_project_has_nothing_to_drag(page):
+    page.goto("/-/board?project=archive")
+    expect(page.locator(".board-card")).not_to_have_count(0)
+    expect(page.locator(".js-card")).to_have_count(0)
+    expect(page.locator(".board-move")).to_have_count(0)

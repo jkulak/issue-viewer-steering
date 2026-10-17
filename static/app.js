@@ -1,11 +1,13 @@
 // The pages work as plain forms; this adds what GitHub adds on top: menus that close,
-// Write/Preview tabs, checkboxes you can tick, labels applied from a menu, live refresh when a
-// file changes on disk, and a few keyboard shortcuts.
+// Write/Preview tabs, checkboxes you can tick, labels applied from a menu, cards dragged between
+// the board's columns, live refresh when a file changes on disk, and a few keyboard shortcuts.
 (() => {
   "use strict";
 
   const csrf = document.querySelector('meta[name="csrf-token"]')?.content ?? "";
   let leaving = false;
+  // A card is being dragged or moved: a reload now would drop it.
+  let holding = false;
 
   const post = (url, data) =>
     fetch(url, {
@@ -381,6 +383,109 @@
     }
   });
 
+  // The board: drag a card to another column, and the issue file gets that column's label
+
+  const board = document.querySelector(".js-board");
+  if (board) {
+    let dragged = null;
+    const zones = () => [...board.querySelectorAll(".js-drop")];
+    const icons = document.querySelector(".js-state-icons")?.content;
+
+    const recount = () => {
+      const totals = {};
+      for (const zone of zones()) {
+        const column = zone.closest(".board-column");
+        const total = zone.children.length + Number(column.dataset.hidden || 0);
+        totals[zone.dataset.column] = total;
+        column.querySelector(".js-column-count").textContent = total;
+      }
+      const show = (selector, value) => {
+        const target = document.querySelector(selector);
+        if (target) target.textContent = value;
+      };
+      show(".js-count-waiting", totals.backlog + totals.review + totals.blocked);
+      show(".js-count-backlog", totals.backlog);
+      show(".js-count-review", totals.review);
+      show(".js-count-blocked", totals.blocked);
+      show(".js-count-in-progress", totals["in-progress"]);
+    };
+
+    const settle = (card, column, version) => {
+      card.dataset.version = version;
+      const input = card.querySelector('input[name="version"]');
+      if (input) input.value = version;
+      for (const button of card.querySelectorAll(".js-move")) button.hidden = button.value === column;
+      card.querySelector(".js-inferred")?.remove();
+      const open = column !== "done";
+      const icon = icons?.querySelector(`[data-open="${open}"]`);
+      const state = card.querySelector(".js-state");
+      if (icon && state) state.innerHTML = icon.innerHTML;
+    };
+
+    const clearTargets = () => {
+      for (const zone of board.querySelectorAll(".drop-target")) zone.classList.remove("drop-target");
+    };
+
+    board.addEventListener("dragstart", (event) => {
+      const card = event.target.closest?.(".js-card");
+      if (!card) return;
+      dragged = card;
+      holding = true;
+      card.classList.add("dragging");
+      event.dataTransfer.effectAllowed = "move";
+      event.dataTransfer.setData("text/plain", card.id);
+    });
+    board.addEventListener("dragend", () => {
+      dragged?.classList.remove("dragging");
+      if (dragged && !dragged.classList.contains("moving")) holding = false;
+      dragged = null;
+      clearTargets();
+    });
+    board.addEventListener("dragover", (event) => {
+      const zone = event.target.closest?.(".board-column")?.querySelector(".js-drop");
+      if (!dragged || !zone) return;
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "move";
+      if (!zone.classList.contains("drop-target")) {
+        clearTargets();
+        zone.classList.add("drop-target");
+      }
+    });
+    board.addEventListener("drop", async (event) => {
+      const zone = event.target.closest?.(".board-column")?.querySelector(".js-drop");
+      const card = dragged;
+      if (!card || !zone) return;
+      event.preventDefault();
+      clearTargets();
+      const from = card.parentElement;
+      if (zone === from) return;
+      const next = card.nextElementSibling;
+      zone.prepend(card);
+      card.classList.add("moving");
+      recount();
+      try {
+        const response = await post(card.dataset.statusUrl, {
+          status: zone.dataset.column,
+          version: card.dataset.version,
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || "The card could not be moved.");
+        settle(card, data.column, data.version);
+        // The board's own move is not a change to reload for.
+        const versionUrl = document.body.dataset.versionUrl;
+        const fresh = await fetch(versionUrl, { headers: { Accept: "application/json" }, cache: "no-store" });
+        if (fresh.ok) document.body.dataset.version = (await fresh.json()).version;
+      } catch (error) {
+        from.insertBefore(card, next);
+        recount();
+        showBanner(error.message);
+      } finally {
+        card.classList.remove("moving");
+        holding = false;
+      }
+    });
+  }
+
   // Live refresh: poll a cheap version endpoint and reload when a file changed on disk
 
   const versionUrl = document.body.dataset.versionUrl;
@@ -388,7 +493,7 @@
   if (versionUrl && seconds > 0) {
     let checking = false;
     setInterval(async () => {
-      if (document.hidden || checking || leaving) return;
+      if (document.hidden || checking || leaving || holding) return;
       checking = true;
       try {
         const response = await fetch(versionUrl, { headers: { Accept: "application/json" }, cache: "no-store" });

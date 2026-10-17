@@ -39,7 +39,7 @@ fn same_length_equal(a: &[u8], b: &[u8]) -> bool {
 }
 
 /// Refuse a write that did not come from one of the viewer's own pages.
-fn same_origin(app: &App, request: &Incoming) -> Result<(), Failure> {
+pub(super) fn same_origin(app: &App, request: &Incoming) -> Result<(), Failure> {
     let forbidden = |message: &str| Failure::new(StatusCode::FORBIDDEN, message);
     if let Some(site) = request.header("sec-fetch-site")
         && site != "same-origin"
@@ -116,7 +116,7 @@ fn back(project: &Project, number: u64, anchor: &str) -> Answer {
     ))
 }
 
-fn failed_write(error: std::io::Error) -> Failure {
+pub(super) fn failed_write(error: std::io::Error) -> Failure {
     tracing::error!("writing failed: {error}");
     Failure::new(
         StatusCode::INTERNAL_SERVER_ERROR,
@@ -171,7 +171,7 @@ fn apply(
     }
 }
 
-fn version(request: &Incoming) -> Option<&str> {
+pub(super) fn version(request: &Incoming) -> Option<&str> {
     request
         .field("version")
         .filter(|version| !version.is_empty())

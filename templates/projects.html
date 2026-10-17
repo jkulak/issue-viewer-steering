@@ -3,7 +3,7 @@
 {% block content %}
 <div class="page-head">
   <h1>Projects</h1>
-  <p class="muted">The issue directories listed in <code>PROJECTS</code>{% if can_open %} and the ones picked with <a href="/-/open">Open</a>{% endif %}. Each one is a folder of <code>NNN-slug.md</code> files.</p>
+  <p class="muted">The issue directories listed in <code>PROJECTS</code>{% if can_open %} and the ones picked with <a href="/-/open">Open</a>{% endif %}. Each one is a folder of <code>NNN-slug.md</code> files. <a href="/-/board">{{ icon("project") }} The board of all of them</a> shows what waits for you.</p>
 </div>
 {% if not rows %}
 <div class="Box">
@@ -34,6 +34,7 @@
     <div class="project-row-counts">
       <a href="/{{ item.name }}/issues?q=is%3Aissue+is%3Aopen">{{ icon("issue-opened") }} {{ row.snapshot.open_count }} open</a>
       <a href="/{{ item.name }}/issues?q=is%3Aissue+is%3Aclosed">{{ icon("issue-closed") }} {{ row.snapshot.closed_count }} closed</a>
+      <a href="/{{ item.name }}/board">{{ icon("project") }} Board</a>
       {% if row.latest %}<span title="{{ absolute(row.latest) }}">Updated {{ ago(row.latest) }}</span>{% endif %}
     </div>
   </div>

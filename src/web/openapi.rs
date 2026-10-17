@@ -41,6 +41,22 @@ const VERSION_FIELD: Field = field(
     "string",
     "The version of the file the edit is based on",
 );
+const PROJECTS_FIELD: Field = Field {
+    name: "project",
+    kind: "string",
+    list: true,
+    description: "The projects to show; every project when there is none",
+};
+const FILTER_FIELD: Field = field(
+    "q",
+    "string",
+    "Filter the cards like the issue list: label:bug, is:open, words",
+);
+const DONE_FIELD: Field = field(
+    "done",
+    "string",
+    "all to show every card in Done, not only the ten most recent",
+);
 
 pub const ROUTES: &[Route] = &[
     Route {
@@ -74,6 +90,22 @@ pub const ROUTES: &[Route] = &[
             "A folder relative to the open root",
         )],
         answer: Answer::Redirect,
+    },
+    Route {
+        method: "get",
+        path: "/-/board",
+        summary: "The board of several projects, or of all of them",
+        query: &[PROJECTS_FIELD, FILTER_FIELD, DONE_FIELD],
+        form: &[],
+        answer: Answer::Html,
+    },
+    Route {
+        method: "get",
+        path: "/-/board/version",
+        summary: "What an open board polls to notice a change to an issue file or a branch",
+        query: &[PROJECTS_FIELD],
+        form: &[],
+        answer: Answer::Json("{version}"),
     },
     Route {
         method: "get",
@@ -211,10 +243,39 @@ pub const ROUTES: &[Route] = &[
         answer: Answer::Json("The new version and task counts: {version, done, total}"),
     },
     Route {
+        method: "post",
+        path: "/{project_name}/issues/{number}/status",
+        summary: "Move the issue to a column of the board; with Accept: application/json the answer \
+                  is {version, column} instead of a redirect",
+        query: &[],
+        form: &[
+            field(
+                "status",
+                "string",
+                "backlog, selected, in-progress, testing, review, blocked or done",
+            ),
+            VERSION_FIELD,
+            field(
+                "back",
+                "string",
+                "The page to go back to, a path on this site; the board when missing",
+            ),
+        ],
+        answer: Answer::Redirect,
+    },
+    Route {
         method: "get",
         path: "/{project_name}/labels",
         summary: "The labels",
         query: &[],
+        form: &[],
+        answer: Answer::Html,
+    },
+    Route {
+        method: "get",
+        path: "/{project_name}/board",
+        summary: "The project's board",
+        query: &[FILTER_FIELD, DONE_FIELD],
         form: &[],
         answer: Answer::Html,
     },

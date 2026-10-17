@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% from "_macros.html" import state_icon, label_pill %}
+{% block title %}Board · {% if project %}{{ project.name }}{% else %}{{ heading }}{% endif %}{% endblock %}
+{% block body_attributes %} data-version-url="{{ version_url }}" data-version="{{ signature }}"{% endblock %}
+{% block main_class %} container-wide{% endblock %}
+{% block content %}
+<div class="board-head">
+  <h1 class="page-title">{{ heading }}</h1>
+  <p class="board-summary">
+    <span class="board-summary-attention">{{ icon("alert") }}<strong class="js-count-waiting">{{ summary.waiting }}</strong>&nbsp;waiting for you</span>
+    <span class="muted">(<span class="js-count-backlog">{{ summary.backlog }}</span> backlog, <span class="js-count-review">{{ summary.review }}</span> review, <span class="js-count-blocked">{{ summary.blocked }}</span> blocked)</span>
+    <span class="meta-dot">·</span>
+    <span><strong class="js-count-in-progress">{{ summary.in_progress }}</strong> in progress</span>
+    <span class="meta-dot">·</span>
+    <span><strong>{{ summary.active }}</strong> active in the last hour</span>
+  </p>
+</div>
+
+<div class="list-toolbar">
+  <form class="search-form" method="get" action="{{ board_url }}" role="search">
+    {% for name in names %}<input type="hidden" name="project" value="{{ name }}">{% endfor %}
+    {% if all_done %}<input type="hidden" name="done" value="all">{% endif %}
+    <label class="search-input">
+      {{ icon("search") }}
+      <input type="text" name="q" value="{{ q }}" class="js-search-input" aria-label="Filter the cards" placeholder="Filter the cards: label:bug, is:open, words" autocomplete="off" spellcheck="false">
+    </label>
+  </form>
+  <div class="toolbar-actions">
+    <details class="menu js-menu">
+      <summary class="btn">{{ icon("repo") }} Projects <span class="Counter">{% if names %}{{ names|length }}{% elif project %}1{% else %}All{% endif %}</span> {{ icon("triangle-down") }}</summary>
+      <div class="menu-overlay menu-right">
+        <form method="get" action="/-/board">
+          <div class="menu-title">Show the board of</div>
+          <div class="menu-list">
+            {% for item in pickable %}
+            <label class="menu-item label-option">
+              <input type="checkbox" name="project" value="{{ item.name }}"{% if item.chosen %} checked{% endif %}>
+              <span class="menu-check">{{ icon("check") }}</span>
+              <span class="label-option-name">{{ item.name }}</span>
+            </label>
+            {% endfor %}
+          </div>
+          {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
+          <div class="menu-footer">
+            <a class="btn btn-sm" href="/-/board">All projects</a>
+            <button class="btn btn-sm btn-primary" type="submit">Show</button>
+          </div>
+        </form>
+      </div>
+    </details>
+  </div>
+</div>
+
+{% if q %}
+<a class="clear-query" href="{{ clear_url }}">{{ icon("x") }} Clear the filter</a>
+{% endif %}
+
+<div class="board js-board">
+  {% for column in columns %}
+  <section class="board-column{% if column.needs_you %} board-column-attention{% endif %}" data-column="{{ column.key }}" data-hidden="{{ column.hidden }}" aria-labelledby="column-{{ column.key }}">
+    <header class="board-column-head">
+      <h2 class="board-column-title" id="column-{{ column.key }}">{{ column.title }}</h2>
+      <span class="Counter js-column-count">{{ column.total }}</span>
+    </header>
+    <p class="board-column-hint">{% if column.needs_you %}{{ icon("alert", 12) }} {% endif %}{{ column.hint }}</p>
+    <ol class="board-cards js-drop" data-column="{{ column.key }}">
+      {% for card in column.cards %}
+      <li class="board-card{% if card.writable %} js-card{% endif %}" id="card-{{ card.project }}-{{ card.number }}" data-status-url="/{{ card.project }}/issues/{{ card.number }}/status" data-version="{{ card.version }}"{% if card.writable %} draggable="true"{% endif %}>
+        <div class="board-card-top">
+          {% if multiple %}<span class="board-card-project">{{ icon("repo", 12) }}{{ card.project }}</span>{% endif %}
+          <span class="board-card-number">#{{ card.number }}</span>
+          {% if card.placement == "inferred" %}<span class="Label board-card-inferred js-inferred" title="No status label: a branch for it is being worked on">from git</span>{% endif %}
+          {% if card.writable %}
+          <details class="menu js-menu board-move">
+            <summary class="btn-octicon" aria-label="Move #{{ card.number }}">{{ icon("kebab") }}</summary>
+            <div class="menu-overlay menu-right">
+              <div class="menu-title">Move to</div>
+              <form class="menu-list" method="post" action="/{{ card.project }}/issues/{{ card.number }}/status">
+                <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+                <input type="hidden" name="version" value="{{ card.version }}">
+                <input type="hidden" name="back" value="{{ back }}">
+                {% for target in columns %}
+                <button class="menu-item js-move" type="submit" name="status" value="{{ target.key }}"{% if target.key == column.key %} hidden{% endif %}>{{ target.title }}</button>
+                {% endfor %}
+              </form>
+            </div>
+          </details>
+          {% endif %}
+        </div>
+        <a class="board-card-title" href="/{{ card.project }}/issues/{{ card.number }}"><span class="js-state">{{ state_icon(card) }}</span><span>{{ card.title }}</span></a>
+        {% if card.labels %}
+        <div class="board-card-labels">{% for label in card.labels %}{{ label_pill(label) }} {% endfor %}</div>
+        {% endif %}
+        {% if card.blockers %}
+        <div class="board-card-note blocked-note">{{ icon("blocked", 12) }}Blocked by {% for blocker in card.blockers %}<a href="/{{ card.project }}/issues/{{ blocker.number }}" title="{{ blocker.title }}">#{{ blocker.number }}</a>{% if not loop.last %}, {% endif %}{% endfor %}</div>
+        {% endif %}
+        {% for branch in card.branches %}
+        <div class="board-branch{% if branch.working %} board-branch-working{% endif %}">
+          {{ icon("git-branch", 12) }}<code class="board-branch-name">{{ branch.name }}</code>
+          {% if branch.worktree %}<span class="board-branch-fact" title="{{ branch.worktree_path }}">in {{ branch.worktree }}</span>{% endif %}
+          {% if branch.ahead %}<span class="board-branch-fact">{{ branch.ahead }} ahead</span>{% endif %}
+          {% if branch.changes %}<span class="board-branch-fact board-branch-changes">{{ branch.changes }} uncommitted</span>{% endif %}
+          <span class="board-branch-fact" title="{{ absolute(branch.active) }}">{{ ago(branch.active) }}</span>
+        </div>
+        {% endfor %}
+        <div class="board-card-meta">
+          <span title="{{ absolute(card.updated) }}">updated {{ ago(card.updated) }}</span>
+          {% if card.tasks_total %}<span class="meta-item task-progress">{{ progress(card.tasks_done, card.tasks_total) }}{{ card.tasks_done }}/{{ card.tasks_total }}</span>{% endif %}
+          {% if card.comment_count %}<span class="meta-item" aria-label="{{ card.comment_count }} comments">{{ icon("comment", 12) }}{{ card.comment_count }}</span>{% endif %}
+        </div>
+      </li>
+      {% endfor %}
+    </ol>
+    {% if column.hidden %}
+    <a class="board-more" href="{{ every_done_url }}">Show {{ column.hidden }} more</a>
+    {% endif %}
+  </section>
+  {% endfor %}
+</div>
+
+{% if loose %}
+<section class="Box board-loose" aria-labelledby="loose-title">
+  <div class="Box-header">
+    <h2 class="Box-title" id="loose-title">{{ icon("git-branch") }} Work without an issue</h2>
+    <span class="muted small">Checked out in a worktree, and no issue on this board has its number</span>
+  </div>
+  {% for branch in loose %}
+  <div class="Box-row board-branch board-loose-row">
+    {{ icon("git-branch", 12) }}<code class="board-branch-name">{{ branch.name }}</code>
+    <span class="board-branch-fact">{{ icon("repo", 12) }}{{ branch.repository }}</span>
+    {% if branch.worktree %}<span class="board-branch-fact" title="{{ branch.worktree_path }}">in {{ branch.worktree }}</span>{% endif %}
+    {% if branch.ahead %}<span class="board-branch-fact">{{ branch.ahead }} ahead</span>{% endif %}
+    {% if branch.changes %}<span class="board-branch-fact board-branch-changes">{{ branch.changes }} uncommitted</span>{% endif %}
+    <span class="board-branch-fact" title="{{ absolute(branch.active) }}">{{ ago(branch.active) }}</span>
+  </div>
+  {% endfor %}
+</section>
+{% endif %}
+
+<template class="js-state-icons">
+  <span data-open="true">{{ state_icon({"is_open": true}) }}</span>
+  <span data-open="false">{{ state_icon({"is_open": false}) }}</span>
+</template>
+{% endblock %}

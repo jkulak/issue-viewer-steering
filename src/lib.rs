@@ -1,9 +1,11 @@
 //! A GitHub-like viewer and editor for the issue files of local projects, served on localhost.
 
+pub mod board;
 pub mod browse;
 pub mod config;
 pub mod files;
 pub mod frontmatter;
+pub mod git;
 pub mod icons;
 pub mod index;
 pub mod issuefile;
