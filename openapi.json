@@ -1,1071 +1,738 @@
 {
-  "openapi": "3.1.0",
   "info": {
     "title": "Issue viewer",
-    "version": "2026.9.0"
+    "version": "2026.10.0"
   },
+  "openapi": "3.1.0",
   "paths": {
-    "/-/open": {
-      "post": {
-        "summary": "Open Directory",
-        "description": "Show a directory under the open root as a project, until the viewer restarts.",
-        "operationId": "open_directory___open_post",
-        "requestBody": {
-          "content": {
-            "application/x-www-form-urlencoded": {
-              "schema": {
-                "$ref": "#/components/schemas/Body_open_directory___open_post"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      },
-      "get": {
-        "summary": "Open Page",
-        "operationId": "open_page___open_get",
-        "parameters": [
-          {
-            "name": "path",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "default": "",
-              "title": "Path"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "text/html": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/{project_name}/issues": {
-      "post": {
-        "summary": "Create Issue",
-        "operationId": "create_issue__project_name__issues_post",
-        "parameters": [
-          {
-            "name": "project_name",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Project Name"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/x-www-form-urlencoded": {
-              "schema": {
-                "$ref": "#/components/schemas/Body_create_issue__project_name__issues_post"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      },
-      "get": {
-        "summary": "Issue List",
-        "operationId": "issue_list__project_name__issues_get",
-        "parameters": [
-          {
-            "name": "project_name",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Project Name"
-            }
-          },
-          {
-            "name": "q",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Q"
-            }
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "default": 1,
-              "title": "Page"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "text/html": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/{project_name}/issues/{number}/title": {
-      "post": {
-        "summary": "Update Title",
-        "operationId": "update_title__project_name__issues__number__title_post",
-        "parameters": [
-          {
-            "name": "project_name",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Project Name"
-            }
-          },
-          {
-            "name": "number",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "title": "Number"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/x-www-form-urlencoded": {
-              "schema": {
-                "$ref": "#/components/schemas/Body_update_title__project_name__issues__number__title_post"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/{project_name}/issues/{number}/description": {
-      "post": {
-        "summary": "Update Description",
-        "operationId": "update_description__project_name__issues__number__description_post",
-        "parameters": [
-          {
-            "name": "project_name",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Project Name"
-            }
-          },
-          {
-            "name": "number",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "title": "Number"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/x-www-form-urlencoded": {
-              "schema": {
-                "$ref": "#/components/schemas/Body_update_description__project_name__issues__number__description_post"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/{project_name}/issues/{number}/labels": {
-      "post": {
-        "summary": "Update Labels",
-        "operationId": "update_labels__project_name__issues__number__labels_post",
-        "parameters": [
-          {
-            "name": "project_name",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Project Name"
-            }
-          },
-          {
-            "name": "number",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "title": "Number"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/x-www-form-urlencoded": {
-              "schema": {
-                "$ref": "#/components/schemas/Body_update_labels__project_name__issues__number__labels_post"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/{project_name}/issues/{number}/comments": {
-      "post": {
-        "summary": "Post Comment",
-        "operationId": "post_comment__project_name__issues__number__comments_post",
-        "parameters": [
-          {
-            "name": "project_name",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Project Name"
-            }
-          },
-          {
-            "name": "number",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "title": "Number"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/x-www-form-urlencoded": {
-              "schema": {
-                "$ref": "#/components/schemas/Body_post_comment__project_name__issues__number__comments_post"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/{project_name}/issues/{number}/comments/{index}": {
-      "post": {
-        "summary": "Update Comment",
-        "operationId": "update_comment__project_name__issues__number__comments__index__post",
-        "parameters": [
-          {
-            "name": "project_name",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Project Name"
-            }
-          },
-          {
-            "name": "number",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "title": "Number"
-            }
-          },
-          {
-            "name": "index",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "title": "Index"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/x-www-form-urlencoded": {
-              "schema": {
-                "$ref": "#/components/schemas/Body_update_comment__project_name__issues__number__comments__index__post"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/{project_name}/issues/{number}/comments/{index}/delete": {
-      "post": {
-        "summary": "Remove Comment",
-        "operationId": "remove_comment__project_name__issues__number__comments__index__delete_post",
-        "parameters": [
-          {
-            "name": "project_name",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Project Name"
-            }
-          },
-          {
-            "name": "number",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "title": "Number"
-            }
-          },
-          {
-            "name": "index",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "title": "Index"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/x-www-form-urlencoded": {
-              "schema": {
-                "$ref": "#/components/schemas/Body_remove_comment__project_name__issues__number__comments__index__delete_post"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/{project_name}/issues/{number}/tasks": {
-      "post": {
-        "summary": "Toggle Task",
-        "operationId": "toggle_task__project_name__issues__number__tasks_post",
-        "parameters": [
-          {
-            "name": "project_name",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Project Name"
-            }
-          },
-          {
-            "name": "number",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "title": "Number"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/x-www-form-urlencoded": {
-              "schema": {
-                "$ref": "#/components/schemas/Body_toggle_task__project_name__issues__number__tasks_post"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/{project_name}/preview": {
-      "post": {
-        "summary": "Preview",
-        "operationId": "preview__project_name__preview_post",
-        "parameters": [
-          {
-            "name": "project_name",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Project Name"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/x-www-form-urlencoded": {
-              "schema": {
-                "$ref": "#/components/schemas/Body_preview__project_name__preview_post"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "additionalProperties": true,
-                  "title": "Response Preview  Project Name  Preview Post"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/": {
       "get": {
-        "summary": "Home",
-        "operationId": "home__get",
         "responses": {
           "200": {
-            "description": "Successful Response",
             "content": {
-              "text/html": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
+              "text/html": {}
+            },
+            "description": "An HTML page"
+          },
+          "default": {
+            "description": "An error page, or {error} with Accept: application/json"
           }
-        }
+        },
+        "summary": "The projects"
       }
     },
-    "/{project_name}/issues/new": {
+    "/-/open": {
       "get": {
-        "summary": "New Issue Form",
-        "operationId": "new_issue_form__project_name__issues_new_get",
         "parameters": [
           {
-            "name": "project_name",
-            "in": "path",
-            "required": true,
+            "in": "query",
+            "name": "path",
+            "required": false,
             "schema": {
-              "type": "string",
-              "title": "Project Name"
+              "description": "A folder relative to the open root",
+              "type": "string"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Successful Response",
             "content": {
-              "text/html": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
+              "text/html": {}
+            },
+            "description": "An HTML page"
           },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
+          "default": {
+            "description": "An error page, or {error} with Accept: application/json"
+          }
+        },
+        "summary": "Browse the folders under the open root"
+      },
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "_csrf": {
+                    "description": "The token the page embeds; or send it as X-CSRF-Token",
+                    "type": "string"
+                  },
+                  "path": {
+                    "description": "A folder relative to the open root",
+                    "type": "string"
+                  }
+                },
+                "type": "object"
               }
             }
           }
-        }
-      }
-    },
-    "/{project_name}/issues/{number}": {
-      "get": {
-        "summary": "Issue Page",
-        "operationId": "issue_page__project_name__issues__number__get",
-        "parameters": [
-          {
-            "name": "project_name",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Project Name"
-            }
-          },
-          {
-            "name": "number",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "title": "Number"
-            }
-          }
-        ],
+        },
         "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "text/html": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
+          "303": {
+            "description": "Saved; the Location header is the page to show next"
           },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+          "default": {
+            "description": "An error page, or {error} with Accept: application/json"
           }
-        }
-      }
-    },
-    "/{project_name}/labels": {
-      "get": {
-        "summary": "Label List",
-        "operationId": "label_list__project_name__labels_get",
-        "parameters": [
-          {
-            "name": "project_name",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Project Name"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "text/html": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
+        },
+        "summary": "Open a folder under the open root as a project"
       }
     },
     "/{project_name}/-/version": {
       "get": {
-        "summary": "Version",
-        "description": "What open pages poll to notice that a file changed on disk.",
-        "operationId": "version__project_name____version_get",
         "parameters": [
           {
-            "name": "project_name",
             "in": "path",
+            "name": "project_name",
             "required": true,
             "schema": {
-              "type": "string",
-              "title": "Project Name"
+              "type": "string"
             }
           },
           {
-            "name": "issue",
             "in": "query",
+            "name": "issue",
             "required": false,
             "schema": {
-              "anyOf": [
-                {
-                  "type": "integer"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Issue"
+              "description": "An issue number; without it, the version of the whole project",
+              "type": "integer"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Successful Response",
             "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "additionalProperties": true,
-                  "title": "Response Version  Project Name    Version Get"
-                }
-              }
-            }
+              "application/json": {}
+            },
+            "description": "{version}: a string, or null for an issue that is not there"
           },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+          "default": {
+            "description": "An error page, or {error} with Accept: application/json"
           }
-        }
+        },
+        "summary": "What open pages poll to notice a change on disk"
       }
-    }
-  },
-  "components": {
-    "schemas": {
-      "Body_create_issue__project_name__issues_post": {
-        "properties": {
-          "title": {
-            "type": "string",
-            "title": "Title",
-            "default": ""
+    },
+    "/{project_name}/issues": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
           },
-          "description": {
-            "type": "string",
-            "title": "Description",
-            "default": ""
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "description": "A search like GitHub's: is:open, label:bug, sort:updated-desc, words",
+              "type": "string"
+            }
           },
-          "labels": {
-            "anyOf": [
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Labels"
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "description": "The page, from 1",
+              "type": "integer"
+            }
           }
-        },
-        "type": "object",
-        "title": "Body_create_issue__project_name__issues_post"
-      },
-      "Body_open_directory___open_post": {
-        "properties": {
-          "path": {
-            "type": "string",
-            "title": "Path",
-            "default": ""
-          }
-        },
-        "type": "object",
-        "title": "Body_open_directory___open_post"
-      },
-      "Body_post_comment__project_name__issues__number__comments_post": {
-        "properties": {
-          "text": {
-            "type": "string",
-            "title": "Text",
-            "default": ""
-          },
-          "action": {
-            "type": "string",
-            "title": "Action",
-            "default": "comment"
-          }
-        },
-        "type": "object",
-        "title": "Body_post_comment__project_name__issues__number__comments_post"
-      },
-      "Body_preview__project_name__preview_post": {
-        "properties": {
-          "text": {
-            "type": "string",
-            "title": "Text",
-            "default": ""
-          }
-        },
-        "type": "object",
-        "title": "Body_preview__project_name__preview_post"
-      },
-      "Body_remove_comment__project_name__issues__number__comments__index__delete_post": {
-        "properties": {
-          "version": {
-            "type": "string",
-            "title": "Version",
-            "default": ""
-          }
-        },
-        "type": "object",
-        "title": "Body_remove_comment__project_name__issues__number__comments__index__delete_post"
-      },
-      "Body_toggle_task__project_name__issues__number__tasks_post": {
-        "properties": {
-          "part": {
-            "type": "string",
-            "title": "Part",
-            "default": ""
-          },
-          "line": {
-            "type": "integer",
-            "title": "Line",
-            "default": -1
-          },
-          "checked": {
-            "type": "string",
-            "title": "Checked",
-            "default": ""
-          },
-          "version": {
-            "type": "string",
-            "title": "Version",
-            "default": ""
-          }
-        },
-        "type": "object",
-        "title": "Body_toggle_task__project_name__issues__number__tasks_post"
-      },
-      "Body_update_comment__project_name__issues__number__comments__index__post": {
-        "properties": {
-          "text": {
-            "type": "string",
-            "title": "Text",
-            "default": ""
-          },
-          "version": {
-            "type": "string",
-            "title": "Version",
-            "default": ""
-          }
-        },
-        "type": "object",
-        "title": "Body_update_comment__project_name__issues__number__comments__index__post"
-      },
-      "Body_update_description__project_name__issues__number__description_post": {
-        "properties": {
-          "text": {
-            "type": "string",
-            "title": "Text",
-            "default": ""
-          },
-          "version": {
-            "type": "string",
-            "title": "Version",
-            "default": ""
-          }
-        },
-        "type": "object",
-        "title": "Body_update_description__project_name__issues__number__description_post"
-      },
-      "Body_update_labels__project_name__issues__number__labels_post": {
-        "properties": {
-          "labels": {
-            "anyOf": [
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Labels"
-          }
-        },
-        "type": "object",
-        "title": "Body_update_labels__project_name__issues__number__labels_post"
-      },
-      "Body_update_title__project_name__issues__number__title_post": {
-        "properties": {
-          "title": {
-            "type": "string",
-            "title": "Title",
-            "default": ""
-          }
-        },
-        "type": "object",
-        "title": "Body_update_title__project_name__issues__number__title_post"
-      },
-      "HTTPValidationError": {
-        "properties": {
-          "detail": {
-            "items": {
-              "$ref": "#/components/schemas/ValidationError"
-            },
-            "type": "array",
-            "title": "Detail"
-          }
-        },
-        "type": "object",
-        "title": "HTTPValidationError"
-      },
-      "ValidationError": {
-        "properties": {
-          "loc": {
-            "items": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "integer"
-                }
-              ]
-            },
-            "type": "array",
-            "title": "Location"
-          },
-          "msg": {
-            "type": "string",
-            "title": "Message"
-          },
-          "type": {
-            "type": "string",
-            "title": "Error Type"
-          },
-          "input": {
-            "title": "Input"
-          },
-          "ctx": {
-            "type": "object",
-            "title": "Context"
-          }
-        },
-        "type": "object",
-        "required": [
-          "loc",
-          "msg",
-          "type"
         ],
-        "title": "ValidationError"
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {}
+            },
+            "description": "An HTML page"
+          },
+          "default": {
+            "description": "An error page, or {error} with Accept: application/json"
+          }
+        },
+        "summary": "The issue list"
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "_csrf": {
+                    "description": "The token the page embeds; or send it as X-CSRF-Token",
+                    "type": "string"
+                  },
+                  "description": {
+                    "description": "The description, in Markdown",
+                    "type": "string"
+                  },
+                  "labels": {
+                    "description": "The labels",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "title": {
+                    "description": "The title",
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "303": {
+            "description": "Saved; the Location header is the page to show next"
+          },
+          "default": {
+            "description": "An error page, or {error} with Accept: application/json"
+          }
+        },
+        "summary": "Create an issue"
+      }
+    },
+    "/{project_name}/issues/new": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {}
+            },
+            "description": "An HTML page"
+          },
+          "default": {
+            "description": "An error page, or {error} with Accept: application/json"
+          }
+        },
+        "summary": "The form for a new issue"
+      }
+    },
+    "/{project_name}/issues/{number}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "number",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {}
+            },
+            "description": "An HTML page"
+          },
+          "default": {
+            "description": "An error page, or {error} with Accept: application/json"
+          }
+        },
+        "summary": "An issue"
+      }
+    },
+    "/{project_name}/issues/{number}/comments": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "number",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "_csrf": {
+                    "description": "The token the page embeds; or send it as X-CSRF-Token",
+                    "type": "string"
+                  },
+                  "action": {
+                    "description": "comment, close, close-not-planned or reopen",
+                    "type": "string"
+                  },
+                  "text": {
+                    "description": "The comment, in Markdown; may be empty when closing or reopening",
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "303": {
+            "description": "Saved; the Location header is the page to show next"
+          },
+          "default": {
+            "description": "An error page, or {error} with Accept: application/json"
+          }
+        },
+        "summary": "Comment, close or reopen"
+      }
+    },
+    "/{project_name}/issues/{number}/comments/{index}": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "number",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "index",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "_csrf": {
+                    "description": "The token the page embeds; or send it as X-CSRF-Token",
+                    "type": "string"
+                  },
+                  "text": {
+                    "description": "The new comment, in Markdown",
+                    "type": "string"
+                  },
+                  "version": {
+                    "description": "The version of the file the edit is based on",
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "303": {
+            "description": "Saved; the Location header is the page to show next"
+          },
+          "default": {
+            "description": "An error page, or {error} with Accept: application/json"
+          }
+        },
+        "summary": "Change a comment"
+      }
+    },
+    "/{project_name}/issues/{number}/comments/{index}/delete": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "number",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "index",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "_csrf": {
+                    "description": "The token the page embeds; or send it as X-CSRF-Token",
+                    "type": "string"
+                  },
+                  "version": {
+                    "description": "The version of the file the edit is based on",
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "303": {
+            "description": "Saved; the Location header is the page to show next"
+          },
+          "default": {
+            "description": "An error page, or {error} with Accept: application/json"
+          }
+        },
+        "summary": "Delete a comment"
+      }
+    },
+    "/{project_name}/issues/{number}/description": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "number",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "_csrf": {
+                    "description": "The token the page embeds; or send it as X-CSRF-Token",
+                    "type": "string"
+                  },
+                  "text": {
+                    "description": "The new description, in Markdown",
+                    "type": "string"
+                  },
+                  "version": {
+                    "description": "The version of the file the edit is based on",
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "303": {
+            "description": "Saved; the Location header is the page to show next"
+          },
+          "default": {
+            "description": "An error page, or {error} with Accept: application/json"
+          }
+        },
+        "summary": "Change the description"
+      }
+    },
+    "/{project_name}/issues/{number}/labels": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "number",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "_csrf": {
+                    "description": "The token the page embeds; or send it as X-CSRF-Token",
+                    "type": "string"
+                  },
+                  "labels": {
+                    "description": "The labels",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "303": {
+            "description": "Saved; the Location header is the page to show next"
+          },
+          "default": {
+            "description": "An error page, or {error} with Accept: application/json"
+          }
+        },
+        "summary": "Set the labels"
+      }
+    },
+    "/{project_name}/issues/{number}/tasks": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "number",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "_csrf": {
+                    "description": "The token the page embeds; or send it as X-CSRF-Token",
+                    "type": "string"
+                  },
+                  "checked": {
+                    "description": "1, true or on to tick it; anything else unticks it",
+                    "type": "string"
+                  },
+                  "line": {
+                    "description": "The line of the checkbox in that part",
+                    "type": "integer"
+                  },
+                  "part": {
+                    "description": "description, or the index of a comment",
+                    "type": "string"
+                  },
+                  "version": {
+                    "description": "The version of the file the edit is based on",
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {}
+            },
+            "description": "The new version and task counts: {version, done, total}"
+          },
+          "default": {
+            "description": "An error page, or {error} with Accept: application/json"
+          }
+        },
+        "summary": "Tick or untick a checkbox"
+      }
+    },
+    "/{project_name}/issues/{number}/title": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "number",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "_csrf": {
+                    "description": "The token the page embeds; or send it as X-CSRF-Token",
+                    "type": "string"
+                  },
+                  "title": {
+                    "description": "The new title",
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "303": {
+            "description": "Saved; the Location header is the page to show next"
+          },
+          "default": {
+            "description": "An error page, or {error} with Accept: application/json"
+          }
+        },
+        "summary": "Change the title"
+      }
+    },
+    "/{project_name}/labels": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {}
+            },
+            "description": "An HTML page"
+          },
+          "default": {
+            "description": "An error page, or {error} with Accept: application/json"
+          }
+        },
+        "summary": "The labels"
+      }
+    },
+    "/{project_name}/preview": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "_csrf": {
+                    "description": "The token the page embeds; or send it as X-CSRF-Token",
+                    "type": "string"
+                  },
+                  "text": {
+                    "description": "Markdown",
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {}
+            },
+            "description": "{html}"
+          },
+          "default": {
+            "description": "An error page, or {error} with Accept: application/json"
+          }
+        },
+        "summary": "Render Markdown the way an issue shows it"
       }
     }
   }

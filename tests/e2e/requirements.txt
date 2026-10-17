@@ -1,0 +1,12 @@
+# The Python packages of the smoke and browser tests, pinned to the versions they were last
+# run with. tests/e2e/Dockerfile installs them into the Playwright image.
+colorama==0.4.6 ; sys_platform == 'win32'
+greenlet==3.5.6
+iniconfig==2.3.0
+packaging==26.3
+playwright==1.63.0
+pluggy==1.6.0
+pyee==13.0.1
+pygments==2.21.0
+pytest==9.1.1
+typing-extensions==4.16.0

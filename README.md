@@ -7,7 +7,8 @@ users: the files are the source of truth, and they stay readable and editable by
 
 ## Quick start
 
-Only Docker is needed on the host.
+The viewer is one binary that serves the pages on 127.0.0.1 and prints the address. Building it
+needs `rustup`; the toolchain version comes from `rust-toolchain.toml`.
 
 ```bash
 cp .env.example .env
@@ -16,22 +17,33 @@ cp .env.example .env
 Put the issue directories you want to see in `PROJECTS` in `.env`, then:
 
 ```bash
-make up
+make run
 ```
 
-The viewer runs on <http://localhost:8090> (`PORT` in `.env`). `make down` stops it, `make logs`
-follows its log, `make help` lists every target.
+`make run` builds `target/release/issue-viewer` and starts it. The first line it prints is the
+address, <http://127.0.0.1:8090> by default (`PORT` in `.env`); `make open` also opens it in the
+browser. Ctrl + C stops it. `make help` lists every target.
 
-`PROJECTS` is a comma-separated list of `name=/absolute/path/on/the/host`. Only those
-directories are mounted into the container. An entry ending in `:ro` is mounted read-only and
-shown without any write control:
+The binary carries its pages, styles and scripts, so it can be copied anywhere and started on its
+own. It reads `.env` from the directory it starts in, or the file `--env-file` names; a variable
+set in the environment wins over the file:
+
+```bash
+PORT=8091 target/release/issue-viewer --env-file /Users/you/issue-viewer.env --open
+```
+
+A setting it cannot use stops it with a message and exit code 2; a port that is already taken
+stops it with exit code 1. `PORT=0` lets the system pick a free port.
+
+`PROJECTS` is a comma-separated list of `name=/absolute/path`. The viewer shows those directories
+and nothing else. An entry ending in `:ro` is read-only: the viewer never writes to it and shows
+it without any write control:
 
 ```dotenv
 PROJECTS=notes=/Users/you/dev/notes/tasks,archive=/Users/you/dev/old-project/tasks:ro
 ```
 
-Run `make up` again after changing the list: it regenerates `compose.override.yaml`, the file
-that holds the mounts.
+Restart the viewer after changing the list.
 
 ### Opening a directory that is not in the list
 
@@ -46,8 +58,8 @@ Open browses the folders under that root, shows how many issue files each one ho
 the `tasks/` or `issues/` folder inside a repository. Opening a folder adds it to the project list
 until the viewer restarts; to keep it, add it to `PROJECTS`. Its name comes from its path, without
 a trailing `tasks` or `issues`: `notes-app/tasks` opens as `notes-app`. A folder that is already a
-project opens that project. With `:ro`, the root is mounted read-only and every folder opened from
-it is read-only too; a directory in `PROJECTS` keeps its own mode either way.
+project opens that project. With `:ro`, every folder opened from the root is read-only; a
+directory in `PROJECTS` keeps its own mode either way.
 
 ## The files it reads and writes
 
@@ -137,46 +149,48 @@ HTML comments are hidden. `#N` and links to `NNN-slug.md` open that issue.
 |---|---|---|
 | `PROJECTS` | – | `name=/absolute/path[:ro],…`, the directories to show |
 | `OPEN_ROOT` | – | `/absolute/path[:ro]`, the tree **Open** browses; empty turns Open off |
-| `PORT` | `8090` | port on 127.0.0.1 |
+| `PORT` | `8090` | port on 127.0.0.1; `0` lets the system pick one |
 | `ALLOWED_HOSTS` | – | extra host names to answer to; `localhost` and `127.0.0.1` always work |
-| `TZ` | `UTC` | time zone for comment timestamps and dates |
+| `TZ` | the system's | time zone for comment timestamps and dates, for example `Europe/Warsaw` |
 | `REFRESH_SECONDS` | `3` | how often open pages check for changes; `0` turns it off |
-| `LOG_LEVEL` | `INFO` | log level; the log goes to stdout |
+| `LOG_LEVEL` | `INFO` | `DEBUG`, `INFO`, `WARNING` or `ERROR`; the log goes to stdout |
 
 ## Security
 
 There is no login, so the viewer relies on where requests come from:
 
-- The port is published on 127.0.0.1 only.
+- It listens on 127.0.0.1 only, never on another interface.
 - The Host header must be `localhost`, `127.0.0.1` or a name in `ALLOWED_HOSTS`, which stops DNS
   rebinding.
 - A write must come from the viewer's own page (Origin and Sec-Fetch-Site) and carry the token
-  the page embeds, which stops another site from posting a form to it.
-- Only the configured directories and `OPEN_ROOT` are mounted; `:ro` ones are read-only for
-  Docker as well. An issue is addressed by project and number, never by path. Open is the one
+  the page embeds, which stops another site from posting a form to it. The token is new every
+  time the viewer starts.
+- It reads and writes only the directories in `PROJECTS` and under `OPEN_ROOT`, and never writes
+  to a `:ro` one. An issue is addressed by project and number, never by path. Open is the one
   place a request names a folder, always relative to `OPEN_ROOT`: hidden folders and `..` are
   refused, a symbolic link may not lead out of the root, and opening a folder is a write like any
   other, with the same origin and token checks.
-- The container runs as a non-root user on a read-only root filesystem, with every capability
-  dropped.
+- A request body larger than 4 MB is refused.
 - Pages load nothing from outside the viewer: no CDN, no web fonts, no external images. The
   Content Security Policy enforces it.
 
 ## Development
 
-Everything runs in Docker.
+The code is Rust (axum, minijinja); the pages are plain HTML, CSS and JavaScript with no build
+step. The smoke and browser tests are Python and run in a Playwright image in Docker, against the
+release binary running on the host.
 
 | Target | What it does |
 |---|---|
-| `make test` | unit and web tests (pytest) |
-| `make lint` | ruff check and format check |
-| `make format` | fix and format with ruff |
-| `make smoke` | the production image on synthetic issues, checked over HTTP |
+| `make build` | the release binary, `target/release/issue-viewer` |
+| `make test` | unit and web tests (`cargo test`) |
+| `make lint` | rustfmt check and clippy with warnings as errors |
+| `make format` | format with rustfmt |
+| `make smoke` | the release binary on synthetic issues, checked over HTTP |
 | `make e2e` | the same, driven through Chromium with Playwright |
 | `make check` | all of the above, as CI runs it |
 | `make openapi` | regenerate `openapi.json`, the published schema of the routes |
-| `make lock` | refresh `uv.lock` after a dependency change |
 
-Test data is synthetic: `tests/support/sample.py` writes a made-up project. CI runs `make check`
-on pull requests, on version tags and on demand, never on a push to `main`. See `CONTRIBUTING.md`
-for the conventions.
+Test data is synthetic: the made-up project in `tests/fixtures`, which the Rust tests and the
+Python tests both copy. CI runs `make check` on pull requests, on version tags and on demand, never
+on a push to `main`. See `CONTRIBUTING.md` for the conventions.
