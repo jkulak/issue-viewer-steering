@@ -45,7 +45,8 @@
   `ticking_a_checkbox_changes_one_character`, not `task_2`.
 - Test data is synthetic. No real page, name, e-mail address or hostname goes into a test, a
   fixture, the docs or a commit.
-- `make check` runs every lint and test there is.
+- `make check` runs every lint and test there is. There is no CI: the viewer only runs on this
+  machine, so `make check` passing here is what a merge goes on.
 
 ## Releases
 

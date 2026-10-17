@@ -268,5 +268,5 @@ release binary running on the host.
 | `make openapi` | regenerate `openapi.json`, the published schema of the routes |
 
 Test data is synthetic: the made-up project in `tests/fixtures`, which the Rust tests and the
-Python tests both copy. CI runs `make check` on pull requests, on version tags and on demand, never
-on a push to `main`. See `CONTRIBUTING.md` for the conventions.
+Python tests both copy. There is no CI: the viewer only runs on this machine, so `make check`, run
+here before a merge, is the gate. See `CONTRIBUTING.md` for the conventions.
