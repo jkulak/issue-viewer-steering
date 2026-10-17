@@ -27,7 +27,10 @@ else
     network=""
 fi
 
-PROJECTS="demo=$data/demo,archive=$data/archive:ro" OPEN_ROOT="$data" ALLOWED_HOSTS="$host" \
+# The data directory sits inside this repository; the ceiling keeps the board from reading this
+# repository's own branches as work on the synthetic issues.
+GIT_CEILING_DIRECTORIES="$data" \
+    PROJECTS="demo=$data/demo,archive=$data/archive:ro" OPEN_ROOT="$data" ALLOWED_HOSTS="$host" \
     TZ=UTC REFRESH_SECONDS=1 LOG_LEVEL=WARNING PORT=0 \
     "$binary" --env-file /dev/null >"$log" 2>&1 &
 viewer=$!

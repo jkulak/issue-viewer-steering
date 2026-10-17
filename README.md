@@ -143,6 +143,45 @@ Markdown is rendered like on GitHub: tables, task lists, strikethrough and fence
 is escaped, except a few tags without attributes (`details`, `summary`, `kbd`, `sub`, `sup`, …).
 HTML comments are hidden. `#N` and links to `NNN-slug.md` open that issue.
 
+### The board
+
+**Board** in the header shows every project's issues as a kanban board; the Projects menu narrows
+it to one or several, and a project's own Board tab shows just that project. It is meant for
+following several projects, and several people or agents working on them, at once: which issue
+is being worked on where, and which ones wait for you.
+
+| Column | Labels that put an issue there | Waits for you |
+|---|---|---|
+| Backlog | `backlog`, `later`, `icebox`, `someday`, or no status at all | yes, a decision whether to do it |
+| Selected for development | `selected`, `ready`, `todo`, `approved`, `next` | |
+| In progress | `in-progress`, `doing`, `wip`, `started` | |
+| Testing | `testing`, `in-testing`, `qa` | |
+| Review | `review`, `in-review`, `needs-review`, `awaiting-review` | yes, a review or a merge |
+| Blocked | `blocked`, `on-hold`, `waiting`, `needs-decision` | yes, a decision or an action |
+| Done | `done`, or any closed issue | |
+
+Labels are compared without regard to case, spaces or underscores (`In Progress`, `in_progress`).
+A custom `state` such as `in-review` counts like a label. A closed issue is always in Done; when an
+open issue has several status labels, the column further right wins, so a forgotten `backlog`
+next to `blocked` does not hide it. Other labels stay on the card, and `blocked_by` /
+`depends_on` in the front matter, or a "Blocked by" line, show which issues it waits for. Done
+shows the ten most recently changed; "Show N more" shows the rest.
+
+When an issue directory is inside a git repository, the board also reads its branches, read-only.
+A branch whose name starts with an issue number (`007-normalise-owner-field`) is shown on that
+issue's card with its worktree, the commits it is ahead of `main`, the uncommitted changes in its
+worktree and when it last changed. Where several issues share the number, the one whose file name
+shares the most words with the branch name gets it. An issue with no status label goes to In
+progress, marked "from git", while its branch is checked out in a worktree or has commits ahead
+of `main` from the last 14 days. A worktree on a branch no issue claims is listed under "Work
+without an issue".
+
+Drag a card to another column, or use its ⋯ menu, to move it. Moving replaces the issue's status
+labels with the column's label, spelled the way the project already spells it, and keeps the rest;
+moving to Done closes the issue and moving out of Done reopens it. A card whose file changed after
+the board was loaded is not moved, and read-only projects cannot be moved at all. The search box
+takes the same queries as the issue list.
+
 ## Configuration
 
 | Variable | Default | Meaning |

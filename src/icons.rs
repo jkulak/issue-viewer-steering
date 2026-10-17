@@ -101,6 +101,14 @@ const SHAPES: &[(&str, &str)] = &[
         "tasklist",
         r##"<path d="m1.75 3.75 1.25 1.25 2.25-2.5M1.75 10.25l1.25 1.25 2.25-2.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 4.25h6.25M8 10.75h6.25" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>"##,
     ),
+    (
+        "git-branch",
+        r##"<circle cx="4.5" cy="3.25" r="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="4.5" cy="12.75" r="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="11.5" cy="4.75" r="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M4.5 4.75v6.5M11.5 6.25c0 3-7 2.25-7 5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>"##,
+    ),
+    (
+        "project",
+        r##"<rect x="1.75" y="1.75" width="12.5" height="12.5" rx="1.25" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5 4.75v6.5M8 4.75v3.5M11 4.75v5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>"##,
+    ),
 ];
 
 const LOGO: &str = r##"<svg class="icon logo" viewBox="0 0 32 32" width="{size}" height="{size}" aria-hidden="true"><rect class="logo-tile" width="32" height="32" rx="8"/><circle cx="16" cy="16" r="8.5" fill="none" stroke="#fff" stroke-width="2.75"/><circle cx="16" cy="16" r="2.75" fill="#fff"/></svg>"##;

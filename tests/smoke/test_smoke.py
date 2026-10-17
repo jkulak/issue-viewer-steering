@@ -69,3 +69,14 @@ def test_the_open_page_lists_the_folders_under_the_open_root():
     _, body, _ = get("/-/open")
     assert "Go to demo" in body
     assert "Go to archive" in body
+
+
+def test_the_board_shows_both_projects_in_its_columns():
+    _, body, _ = get("/-/board")
+    assert 'data-column="backlog"' in body
+    assert 'data-column="done"' in body
+    assert 'id="card-demo-4"' in body
+    assert 'id="card-archive-2"' in body
+    status, version, _ = get("/-/board/version")
+    assert status == 200
+    assert "version" in json.loads(version)

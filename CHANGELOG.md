@@ -24,8 +24,18 @@ Versions follow CalVer, `YYYY.MM.PATCH`, tagged `vYYYY.MM.PATCH`.
   manual runs; published `openapi.json`.
 - **Open**: with `OPEN_ROOT` set, a folder picker on every page opens any issue directory under
   that root as a project until the viewer restarts, read-only when the root ends in `:ro`.
+- **Board**: a kanban board for all projects, a chosen few, or one, with Backlog, Selected for
+  development, In progress, Testing, Review, Blocked and Done columns taken from status labels,
+  and the columns that wait for a decision marked. Cards show the git branches, worktrees,
+  commits ahead and uncommitted changes for their issue, an issue without a status is in progress
+  while its branch is worked on, and worktrees no issue claims are listed apart. Dragging a card
+  or picking a column from its menu rewrites its status label and closes or reopens it.
 
 ### Changed
+
+- `blocked_by` and `depends_on` in the front matter count as blocking relationships, like a
+  "Blocked by" line.
+- The header has a Board button next to Open, and every project a Board tab.
 
 - The viewer is one Rust binary instead of a Python app in a Docker container. It listens on
   127.0.0.1, prints its address as the first line, and starts in well under a second; the pages,

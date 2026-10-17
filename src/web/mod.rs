@@ -7,12 +7,14 @@
 //! Every request is answered on a blocking thread: reading the issue files is all it does.
 
 mod assets;
+mod board;
 pub mod openapi;
 mod pages;
 mod views;
 mod writes;
 
 use std::sync::Arc;
+use std::time::Duration;
 
 use axum::Router;
 use axum::body::Bytes;
@@ -23,6 +25,7 @@ use minijinja::context;
 
 use crate::config::Settings;
 use crate::files::hex;
+use crate::git;
 use crate::project::Registry;
 
 pub const CSP: &str = "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; \
@@ -33,6 +36,8 @@ const BODY_LIMIT: usize = 4 * 1024 * 1024;
 pub struct App {
     pub settings: Settings,
     pub registry: Registry,
+    /// What the repositories of the projects say, kept for a few seconds: boards poll it.
+    pub git: git::Cache,
     csrf_token: String,
     templates: views::Templates,
 }
@@ -43,6 +48,7 @@ impl App {
         getrandom::fill(&mut bytes).expect("the system has a source of random numbers");
         Arc::new(App {
             registry: Registry::new(settings.projects.clone()),
+            git: git::Cache::new(Duration::from_secs(4)),
             settings,
             // A new token on every start: a page loaded before a restart has to be reloaded to
             // change anything, which is what its message says.
@@ -367,6 +373,8 @@ fn route(app: &App, request: &Incoming) -> Answer {
         }),
         ["-", "open"] if post => writes::open(app, request),
         ["-", "open"] => only(get, &|| pages::open(app, request)),
+        ["-", "board"] => only(get, &|| board::page(app, request, None)),
+        ["-", "board", "version"] => only(get, &|| board::version(app, request)),
         [project] => only(get, &|| pages::project_root(app, project)),
         [project, "issues"] if post => writes::create(app, request, project),
         [project, "issues"] => only(get, &|| pages::issues(app, request, project)),
@@ -382,6 +390,7 @@ fn route(app: &App, request: &Incoming) -> Answer {
                 "labels" => only(post, &|| writes::labels(app, request, project, n)),
                 "comments" => only(post, &|| writes::comment(app, request, project, n)),
                 "tasks" => only(post, &|| writes::task(app, request, project, n)),
+                "status" => only(post, &|| board::status(app, request, project, n)),
                 _ => Err(Failure::nothing_here()),
             }
         }
@@ -398,6 +407,7 @@ fn route(app: &App, request: &Incoming) -> Answer {
             })
         }
         [project, "labels"] => only(get, &|| pages::labels(app, project)),
+        [project, "board"] => only(get, &|| board::page(app, request, Some(project))),
         [project, "-", "version"] => only(get, &|| pages::version(app, request, project)),
         [project, "preview"] => only(post, &|| writes::preview(app, request, project)),
         _ => Err(Failure::nothing_here()),

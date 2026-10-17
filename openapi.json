@@ -21,6 +21,84 @@
         "summary": "The projects"
       }
     },
+    "/-/board": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project",
+            "required": false,
+            "schema": {
+              "description": "The projects to show; every project when there is none",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "description": "Filter the cards like the issue list: label:bug, is:open, words",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "done",
+            "required": false,
+            "schema": {
+              "description": "all to show every card in Done, not only the ten most recent",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {}
+            },
+            "description": "An HTML page"
+          },
+          "default": {
+            "description": "An error page, or {error} with Accept: application/json"
+          }
+        },
+        "summary": "The board of several projects, or of all of them"
+      }
+    },
+    "/-/board/version": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project",
+            "required": false,
+            "schema": {
+              "description": "The projects to show; every project when there is none",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {}
+            },
+            "description": "{version}"
+          },
+          "default": {
+            "description": "An error page, or {error} with Accept: application/json"
+          }
+        },
+        "summary": "What an open board polls to notice a change to an issue file or a branch"
+      }
+    },
     "/-/open": {
       "get": {
         "parameters": [
@@ -111,6 +189,50 @@
           }
         },
         "summary": "What open pages poll to notice a change on disk"
+      }
+    },
+    "/{project_name}/board": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "description": "Filter the cards like the issue list: label:bug, is:open, words",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "done",
+            "required": false,
+            "schema": {
+              "description": "all to show every card in Done, not only the ten most recent",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {}
+            },
+            "description": "An HTML page"
+          },
+          "default": {
+            "description": "An error page, or {error} with Accept: application/json"
+          }
+        },
+        "summary": "The project's board"
       }
     },
     "/{project_name}/issues": {
@@ -547,6 +669,64 @@
           }
         },
         "summary": "Set the labels"
+      }
+    },
+    "/{project_name}/issues/{number}/status": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "number",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "_csrf": {
+                    "description": "The token the page embeds; or send it as X-CSRF-Token",
+                    "type": "string"
+                  },
+                  "back": {
+                    "description": "The page to go back to, a path on this site; the board when missing",
+                    "type": "string"
+                  },
+                  "status": {
+                    "description": "backlog, selected, in-progress, testing, review, blocked or done",
+                    "type": "string"
+                  },
+                  "version": {
+                    "description": "The version of the file the edit is based on",
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "303": {
+            "description": "Saved; the Location header is the page to show next"
+          },
+          "default": {
+            "description": "An error page, or {error} with Accept: application/json"
+          }
+        },
+        "summary": "Move the issue to a column of the board; with Accept: application/json the answer is {version, column} instead of a redirect"
       }
     },
     "/{project_name}/issues/{number}/tasks": {
