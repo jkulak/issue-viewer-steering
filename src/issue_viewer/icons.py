@@ -68,6 +68,10 @@ SHAPES = {
         f'<rect x="3" y="7" width="10" height="7.25" rx="1.25" {_STROKE}/>'
         f'<path d="M5.25 7V5a2.75 2.75 0 0 1 5.5 0v2" {_STROKE}/>'
     ),
+    "folder": (
+        '<path d="M1.75 3.5c0-.41.34-.75.75-.75h3.4l1.5 1.75h6.1c.41 0 .75.34.75.75v7.25c0 .41-.34'
+        f'.75-.75.75H2.5a.75.75 0 0 1-.75-.75Z" {_STROKE} stroke-linejoin="round"/>'
+    ),
     "file": (
         '<path d="M3.75 1.75h5.5l3 3v9.25a.25.25 0 0 1-.25.25h-8.25a.25.25 0 0 1-.25-.25'
         f'V2a.25.25 0 0 1 .25-.25Z" {_STROKE} stroke-linejoin="round"/>'

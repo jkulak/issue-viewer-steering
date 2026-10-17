@@ -21,10 +21,12 @@
       <span class="context-separator">/</span>
       <a class="context-crumb context-current" href="/{{ project.name }}/issues">{{ project.name }}</a>
       {% if not project.writable %}<span class="Label Label--secondary">{{ icon("lock", 12) }} Read-only</span>{% endif %}
+      {% if project.config.opened %}<span class="Label" title="Picked with Open; forgotten when the viewer restarts">Opened</span>{% endif %}
       {% else %}
       <a class="context-crumb context-current" href="/">Issue viewer</a>
       {% endif %}
     </nav>
+    {% if can_open %}<a class="btn btn-sm app-header-open" href="/-/open">{{ icon("folder") }}<span>Open</span></a>{% endif %}
   </div>
   {% if project %}
   <nav class="underline-nav" aria-label="Project">

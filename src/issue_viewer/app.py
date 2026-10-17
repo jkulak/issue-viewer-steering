@@ -28,7 +28,7 @@ from markupsafe import Markup
 from starlette.exceptions import HTTPException
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
-from . import files, frontmatter, labels, timefmt
+from . import browse, files, frontmatter, labels, timefmt
 from . import query as search
 from .icons import icon, progress
 from .issuefile import (
@@ -46,7 +46,7 @@ from .issuefile import (
 from .issues import STATE_DONE, STATE_NOT_PLANNED, STATE_OPEN, Issue, normalise_labels
 from .project import ConflictError, NotFoundError, Project, ReadOnlyError, Registry, Snapshot
 from .render import Context, Renderer
-from .settings import Settings, load_settings
+from .settings import OpenRoot, Settings, load_settings
 
 log = logging.getLogger(__name__)
 
@@ -122,6 +122,7 @@ def _base(
         "csrf_token": request.app.state.csrf_token,
         "refresh_seconds": settings.refresh_seconds,
         "app_version": request.app.version,
+        "can_open": settings.open_root is not None,
         "project": project,
         "snapshot": snapshot,
         "open_total": snapshot.open_count if snapshot else 0,
@@ -140,7 +141,10 @@ def _project(request: Request, name: str) -> Project:
     try:
         return request.app.state.registry.get(name)
     except NotFoundError:
-        raise HTTPException(404, f"There is no project called “{name}”.") from None
+        message = f"There is no project called “{name}”."
+        if request.app.state.settings.open_root:
+            message += " A directory picked with Open is forgotten when the viewer restarts."
+        raise HTTPException(404, message) from None
 
 
 def _writable(request: Request, name: str) -> Project:
@@ -243,6 +247,51 @@ def home(request: Request) -> HTMLResponse:
         latest = max((issue.updated for issue in snapshot.issues), default=None)
         rows.append({"project": project, "snapshot": snapshot, "latest": latest})
     return _page(request, "projects.html", {**_base(request), "rows": rows})
+
+
+def _open_root(request: Request) -> OpenRoot:
+    root = request.app.state.settings.open_root
+    if root is None:
+        raise HTTPException(404, "Open is off: set OPEN_ROOT in .env and run make up.")
+    return root
+
+
+def _browsed(root: OpenRoot, path: str) -> Path:
+    try:
+        return browse.resolve(root.path, path)
+    except browse.BrowseError as error:
+        raise HTTPException(404, _sentence(error)) from None
+
+
+def _browse_url(relative: str) -> str:
+    return f"/-/open?{urlencode({'path': relative})}" if relative else "/-/open"
+
+
+@router.get("/-/open", response_class=HTMLResponse)
+def open_page(request: Request, path: str = "") -> HTMLResponse:
+    root = _open_root(request)
+    directory = _browsed(root, path)
+    relative = browse.relative_to(root.path, directory)
+    parts = relative.split("/") if relative else []
+    known = {project.path.resolve(): project for project in request.app.state.registry}
+    return _page(
+        request,
+        "open.html",
+        {
+            **_base(request),
+            "root": root,
+            "relative": relative,
+            "crumbs": [(part, "/".join(parts[: i + 1])) for i, part in enumerate(parts)],
+            "parent": "/".join(parts[:-1]) if parts else None,
+            "here": known.get(directory),
+            "here_issues": browse.count_issues(directory),
+            "rows": [
+                {"folder": folder, "project": known.get(directory / folder.name)}
+                for folder in browse.folders(root.path, directory)
+            ],
+            "browse_url": _browse_url,
+        },
+    )
 
 
 @router.get("/{project_name}", include_in_schema=False)
@@ -478,6 +527,18 @@ def _apply(
 
 def _back(project: Project, number: int, anchor: str = "") -> RedirectResponse:
     return RedirectResponse(f"/{project.name}/issues/{number}{anchor}", status_code=303)
+
+
+@writes.post("/-/open")
+def open_directory(request: Request, path: FormText = "") -> RedirectResponse:
+    """Show a directory under the open root as a project, until the viewer restarts."""
+    root = _open_root(request)
+    directory = _browsed(root, path)
+    relative = browse.relative_to(root.path, directory)
+    project = request.app.state.registry.open(
+        directory, lambda taken: browse.project_name(root.path, relative, taken), root.read_only
+    )
+    return RedirectResponse(f"/{project.name}/issues", status_code=303)
 
 
 @writes.post("/{project_name}/issues")

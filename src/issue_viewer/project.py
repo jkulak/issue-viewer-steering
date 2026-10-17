@@ -8,6 +8,7 @@ import threading
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from functools import cached_property
+from pathlib import Path
 
 from . import files, index
 from .issuefile import EditError, new_issue_text, parse
@@ -244,12 +245,34 @@ class Project:
 class Registry:
     def __init__(self, configs: tuple[ProjectConfig, ...]) -> None:
         self.projects = {config.name: Project(config) for config in configs}
+        # Open adds projects while other requests list them: it replaces the dict instead of
+        # changing it, so a request that is going through the old one is not disturbed.
+        self._lock = threading.Lock()
 
     def get(self, name: str) -> Project:
         try:
             return self.projects[name]
         except KeyError:
             raise NotFoundError(f"no project called {name!r}") from None
+
+    def find(self, directory: Path) -> Project | None:
+        """The project that shows this directory, however its path was written."""
+        target = directory.resolve()
+        return next((project for project in self if project.path.resolve() == target), None)
+
+    def open(
+        self, directory: Path, name_for: Callable[[set[str]], str], read_only: bool
+    ) -> Project:
+        """The project for `directory`, added under a new name if no project shows it yet."""
+        with self._lock:
+            existing = self.find(directory)
+            if existing:
+                return existing
+            name = name_for(set(self.projects))
+            project = Project(ProjectConfig(name, directory, read_only, opened=True))
+            self.projects = {**self.projects, name: project}
+        log.info("opened %s: %s", name, directory)
+        return project
 
     def __iter__(self):
         return iter(self.projects.values())

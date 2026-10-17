@@ -172,3 +172,18 @@ def test_a_read_only_project_offers_nothing_to_change(page):
     expect(page.locator(".js-comment-form")).to_have_count(0)
     expect(page.locator(".js-title-edit")).to_have_count(0)
     expect(page.locator(".task-list-item-checkbox")).to_be_disabled()
+
+
+def test_opening_a_folder_from_the_header(page):
+    write_archive(DATA / "notes-app" / "tasks", shared=True)
+    page.goto("/")
+    page.locator(".app-header-open").click()
+    page.get_by_role("link", name="notes-app", exact=True).click()
+    page.get_by_role("link", name="Up one folder").click()
+    page.get_by_role("link", name="tasks/", exact=True).click()
+    expect(page.locator(".Box-title")).to_have_text("2 issue files in this folder")
+    page.get_by_role("button", name="Open this folder").click()
+    expect(page).to_have_url(re.compile(r"/notes-app/issues$"))
+    expect(page.get_by_role("link", name="Another old idea")).to_be_visible()
+    page.goto("/")
+    expect(page.locator('a[href="/notes-app/issues"]').first).to_be_visible()

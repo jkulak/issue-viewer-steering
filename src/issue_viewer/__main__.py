@@ -26,6 +26,9 @@ def main() -> int:
         logging.getLogger("issue_viewer").info(
             "project %s: %s (%s)", project.name, project.path, mode
         )
+    if settings.open_root:
+        mode = "read-only" if settings.open_root.read_only else "read-write"
+        logging.getLogger("issue_viewer").info("open root: %s (%s)", settings.open_root.path, mode)
     # Inside the container the app listens on every interface; compose publishes the port on
     # 127.0.0.1 only, so nothing outside the machine can reach it.
     uvicorn.run(

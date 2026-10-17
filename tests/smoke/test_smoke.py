@@ -63,3 +63,9 @@ def test_the_read_only_project_offers_no_writes():
     _, page, _ = get("/archive/issues/2")
     assert "js-comment-form" not in page
     assert "Read-only" in page
+
+
+def test_the_open_page_lists_the_folders_under_the_open_root():
+    _, body, _ = get("/-/open")
+    assert "Go to demo" in body
+    assert "Go to archive" in body

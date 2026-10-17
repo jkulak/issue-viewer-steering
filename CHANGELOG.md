@@ -22,3 +22,5 @@ Versions follow CalVer, `YYYY.MM.PATCH`, tagged `vYYYY.MM.PATCH`.
   CSRF token on every write, a strict Content Security Policy, nothing loaded from elsewhere.
 - Docker, compose and Makefile; unit, web, smoke and Playwright tests; GitHub Actions CI on pull
   requests, tags and manual runs; published `openapi.json`.
+- **Open**: with `OPEN_ROOT` set, a folder picker on every page opens any issue directory under
+  that root as a project until the viewer restarts, read-only when the root ends in `:ro`.
