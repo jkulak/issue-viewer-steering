@@ -30,6 +30,14 @@ Versions follow CalVer, `YYYY.MM.PATCH`, tagged `vYYYY.MM.PATCH`.
   commits ahead and uncommitted changes for their issue, an issue without a status is in progress
   while its branch is worked on, and worktrees no issue claims are listed apart. Dragging a card
   or picking a column from its menu rewrites its status label and closes or reopens it.
+- **GitHub on the board**: `GITHUB_REPOS` (`owner/name`, `owner/name=/checkout`, `owner/*`) adds
+  GitHub issues and pull requests to the board, read through the signed-in `gh` CLI with no token
+  in the viewer. Labels and closed state place them as they do issue files; an open pull request
+  that closes an issue puts it in Review, or In progress while it is a draft or has changes
+  requested; a pull request that closes nothing shown is its own card; a numbered branch in the
+  checkout counts as work. Cards link to GitHub and cannot be moved. GitHub is read in the
+  background while a board is open, every `GITHUB_REFRESH_SECONDS` (120) at most, and a
+  repository that cannot be read keeps its last cards and says why.
 
 ### Changed
 
