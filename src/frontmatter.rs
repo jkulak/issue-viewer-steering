@@ -438,7 +438,7 @@ mod tests {
             "a: b",
             "say \"hi\"",
             "back\\slash",
-            "zażółć gęślą jaźń",
+            "naïve café, Straße",
             "- dash",
             "[x]",
         ] {

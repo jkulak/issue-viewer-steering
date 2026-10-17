@@ -11,18 +11,20 @@ The viewer is one binary that serves the pages on 127.0.0.1 and prints the addre
 needs `rustup`; the toolchain version comes from `rust-toolchain.toml`.
 
 ```bash
-cp .env.example .env
+make env
 ```
 
-Put the issue directories you want to see in `PROJECTS` in `.env`, then:
+`make env` copies `.env.example` to `.env` unless `.env` is already there. Put the issue
+directories you want to see in `PROJECTS` in `.env`, then:
 
 ```bash
-make run
+make ui
 ```
 
-`make run` builds `target/release/issue-viewer` and starts it. The first line it prints is the
-address, <http://127.0.0.1:8090> by default (`PORT` in `.env`); `make open` also opens it in the
-browser. Ctrl + C stops it. `make help` lists every target.
+`make ui` builds `target/release/issue-viewer`, starts it and opens it in the browser; `make tui`
+is the same. `make run` starts it without the browser. The first line it prints is the address,
+<http://127.0.0.1:8090> by default (`PORT` in `.env`). Ctrl + C stops it. `make how` lists the
+steps, `make help` every target.
 
 The binary carries its pages, styles and scripts, so it can be copied anywhere and started on its
 own. It reads `.env` from the directory it starts in, or the file `--env-file` names; a variable
@@ -262,9 +264,9 @@ release binary running on the host.
 | `make format` | format with rustfmt |
 | `make smoke` | the release binary on synthetic issues, checked over HTTP |
 | `make e2e` | the same, driven through Chromium with Playwright |
-| `make check` | all of the above, as CI runs it |
+| `make check` | all of the above, what must pass before a merge |
 | `make openapi` | regenerate `openapi.json`, the published schema of the routes |
 
 Test data is synthetic: the made-up project in `tests/fixtures`, which the Rust tests and the
-Python tests both copy. CI runs `make check` on pull requests, on version tags and on demand, never
-on a push to `main`. See `CONTRIBUTING.md` for the conventions.
+Python tests both copy. There is no CI: the viewer only runs on this machine, so `make check`, run
+here before a merge, is the gate. See `CONTRIBUTING.md` for the conventions.
