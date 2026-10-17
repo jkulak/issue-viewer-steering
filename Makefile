@@ -1,63 +1,46 @@
 .DEFAULT_GOAL := help
 
-COMPOSE := docker compose
-DEV := $(COMPOSE) --profile dev run --rm dev
-# A compose project of its own, so cleaning up after the tests never stops a running viewer.
-E2E := $(COMPOSE) -p issue-viewer-e2e --profile e2e
+CARGO := cargo
+BINARY := target/release/issue-viewer
 
-.PHONY: help build dev-image mounts up down logs url test lint format smoke e2e check openapi lock
+.PHONY: help build run open test lint format smoke e2e e2e-image check openapi clean
 
 help: ## List the targets with a one-line description
 	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z0-9_-]+:.*## / {printf "  \033[36m%-10s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
-build: ## Build the runtime and dev images
-	$(COMPOSE) build app
-	$(COMPOSE) --profile dev build dev
+build: ## Build the release binary, target/release/issue-viewer
+	$(CARGO) build --release --locked
 
-dev-image: ## Build the dev image if it is not there yet (code is mounted, so once is enough)
-	@docker image inspect issue-viewer:dev >/dev/null 2>&1 || $(COMPOSE) --profile dev build dev
+run: build ## Start the viewer with the settings in .env and print its address
+	$(BINARY)
 
-mounts: ## Write compose.override.yaml (the project mounts) from PROJECTS in .env
-	$(COMPOSE) -f compose.yaml build app
-	$(COMPOSE) -f compose.yaml run --rm --no-deps -T app python -m issue_viewer.mounts > compose.override.yaml.tmp
-	mv compose.override.yaml.tmp compose.override.yaml
+open: build ## Start the viewer and open its address in the browser
+	$(BINARY) --open
 
-up: mounts ## Start the viewer on 127.0.0.1:$PORT with the projects from .env
-	$(COMPOSE) up -d --wait app
-	@echo "Issue viewer: http://$$($(COMPOSE) port app 8080)"
+test: ## Run the unit and web tests
+	$(CARGO) test --locked
 
-down: ## Stop the viewer
-	$(COMPOSE) down
+lint: ## Check formatting and lints (rustfmt, clippy with warnings as errors)
+	$(CARGO) fmt --check
+	$(CARGO) clippy --locked --all-targets -- -D warnings
 
-logs: ## Follow the viewer's log
-	$(COMPOSE) logs -f app
+format: ## Format the code with rustfmt
+	$(CARGO) fmt
 
-url: ## Print the address the viewer listens on
-	@echo "http://$$($(COMPOSE) port app 8080)"
+e2e-image: ## Build the Playwright image the smoke and browser tests run in
+	docker build -t issue-viewer:e2e tests/e2e
 
-test: dev-image ## Run the unit and web tests in Docker
-	$(DEV) pytest
+smoke: build e2e-image ## Run the smoke tests against the release binary on synthetic issues
+	tests/e2e/run.sh smoke
 
-lint: dev-image ## Check style and formatting with ruff in Docker
-	$(DEV) sh -c "ruff check . && ruff format --check ."
-
-format: dev-image ## Fix what ruff can fix and format the code, in Docker
-	$(DEV) sh -c "ruff check --fix . && ruff format ."
-
-smoke: ## Run the smoke tests against the production image on synthetic issues
-	$(E2E) build e2e-app e2e
-	$(E2E) run --rm e2e pytest tests/smoke; status=$$?; $(E2E) down -v; exit $$status
-
-e2e: ## Run the browser tests (Playwright) against the production image
-	$(E2E) build e2e-app e2e
-	$(E2E) run --rm e2e pytest tests/e2e; status=$$?; $(E2E) down -v; exit $$status
+e2e: build e2e-image ## Run the browser tests (Playwright, in Docker) against the release binary
+	tests/e2e/run.sh e2e
 
 check: lint test smoke e2e ## Everything CI runs
 
-openapi: dev-image ## Regenerate openapi.json from the app
-	$(DEV) python -m issue_viewer.openapi > openapi.json.tmp
+openapi: ## Regenerate openapi.json from the route table
+	$(CARGO) run --quiet --locked --example openapi > openapi.json.tmp
 	mv openapi.json.tmp openapi.json
 
-lock: ## Refresh uv.lock after a dependency change (then run make build)
-	docker build --target tools -t issue-viewer:tools .
-	docker run --rm -v "$(CURDIR)":/app -w /app issue-viewer:tools uv lock
+clean: ## Remove the build output
+	$(CARGO) clean

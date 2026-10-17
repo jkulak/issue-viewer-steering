@@ -1,0 +1,37 @@
+[package]
+name = "issue-viewer"
+version = "2026.10.0"
+edition = "2024"
+rust-version = "1.90"
+description = "A GitHub-like viewer and editor for a project's issue files, served on localhost"
+license = "MIT"
+publish = false
+
+[dependencies]
+axum = { version = "0.8", default-features = false, features = ["http1", "tokio", "query", "json"] }
+form_urlencoded = "1"
+getrandom = "0.4"
+jiff = "0.2"
+libc = "0.2"
+minijinja = { version = "3", features = ["serde"] }
+pulldown-cmark = { version = "0.13", default-features = false, features = ["html"] }
+pulldown-cmark-escape = "0.11"
+regex = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.11"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "net", "signal"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", default-features = false, features = ["fmt", "std", "ansi"] }
+unicode-normalization = "0.1"
+yaml-rust2 = "0.13"
+
+[dev-dependencies]
+http-body-util = "0.1"
+tempfile = "3"
+tower = { version = "0.5", features = ["util"] }
+
+[profile.release]
+codegen-units = 1
+lto = "thin"
+strip = true

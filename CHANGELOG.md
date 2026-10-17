@@ -20,7 +20,36 @@ Versions follow CalVer, `YYYY.MM.PATCH`, tagged `vYYYY.MM.PATCH`.
 - Open pages refresh when a file changes on disk.
 - Protection for a login-less local app: 127.0.0.1 only, Host allowlist, same-origin checks and a
   CSRF token on every write, a strict Content Security Policy, nothing loaded from elsewhere.
-- Docker, compose and Makefile; unit, web, smoke and Playwright tests; GitHub Actions CI on pull
-  requests, tags and manual runs; published `openapi.json`.
+- Makefile; unit, web, smoke and Playwright tests; GitHub Actions CI on pull requests, tags and
+  manual runs; published `openapi.json`.
 - **Open**: with `OPEN_ROOT` set, a folder picker on every page opens any issue directory under
   that root as a project until the viewer restarts, read-only when the root ends in `:ro`.
+
+### Changed
+
+- The viewer is one Rust binary instead of a Python app in a Docker container. It listens on
+  127.0.0.1, prints its address as the first line, and starts in well under a second; the pages,
+  styles and scripts are compiled into it, so nothing else needs installing. `--open` opens the
+  address in the browser, `--env-file` reads the settings from another file than `./.env`.
+- A wrong setting stops the viewer with a message and exit code 2, a busy port with a message and
+  exit code 1. `PORT=0` picks a free port. `LOG_LEVEL` and `REFRESH_SECONDS` are checked instead
+  of falling back silently.
+- `TZ` left empty means the system's time zone, and a date shown as "on Mon D" is in that zone.
+- A file whose front matter repeats a key is shown as broken front matter instead of keeping the
+  last value. A title or label such as `y` or `n` is written quoted, as `yes` and `no` already
+  were, so a YAML 1.1 reader does not take it for a boolean.
+- Writing to an issue file that is a symbolic link changes the file it points at and keeps the
+  link.
+- An issue file the viewer cannot read is left out of the list instead of failing the page.
+- Labels sort case-insensitively, with the exact spelling as the tie-break.
+- A search phrase may contain `'` and `\`.
+- A link or image the sanitizer refuses keeps its text, and a `#N` reference in text the Markdown
+  parser splits (next to `_`, for example) is still linked.
+- Static files are sent with an ETag and, when the URL carries the version, cached for good.
+- A request body over the limit is answered with 413, and a URL with a trailing slash redirects
+  to the one without it.
+
+### Removed
+
+- The Docker image, `compose.yaml` and the generated mounts; the viewer reads the directories in
+  `PROJECTS` and `OPEN_ROOT` directly.

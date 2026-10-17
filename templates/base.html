@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="csrf-token" content="{{ csrf_token }}">
+<title>{% block title %}Issue viewer{% endblock %}</title>
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/static/app.css?v={{ asset_version }}">
+<script src="/static/app.js?v={{ asset_version }}" defer></script>
+</head>
+<body data-refresh-seconds="{{ refresh_seconds }}"{% block body_attributes %}{% endblock %}>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="app-header">
+  <div class="app-header-bar">
+    <a class="app-header-logo" href="/" aria-label="All projects">{{ icon("logo", 32) }}</a>
+    <nav class="app-header-context" aria-label="Breadcrumbs">
+      {% if project %}
+      <a class="context-crumb" href="/">Projects</a>
+      <span class="context-separator">/</span>
+      <a class="context-crumb context-current" href="/{{ project.name }}/issues">{{ project.name }}</a>
+      {% if not project.writable %}<span class="Label Label--secondary">{{ icon("lock", 12) }} Read-only</span>{% endif %}
+      {% if project.opened %}<span class="Label" title="Picked with Open; forgotten when the viewer restarts">Opened</span>{% endif %}
+      {% else %}
+      <a class="context-crumb context-current" href="/">Issue viewer</a>
+      {% endif %}
+    </nav>
+    {% if can_open %}<a class="btn btn-sm app-header-open" href="/-/open">{{ icon("folder") }}<span>Open</span></a>{% endif %}
+  </div>
+  {% if project %}
+  <nav class="underline-nav" aria-label="Project">
+    <a class="underline-nav-item" href="/{{ project.name }}/issues"{% if section == "issues" %} aria-current="page"{% endif %}>{{ icon("issue-opened") }}<span>Issues</span><span class="Counter">{{ open_total }}</span></a>
+    <a class="underline-nav-item" href="/{{ project.name }}/labels"{% if section == "labels" %} aria-current="page"{% endif %}>{{ icon("tag") }}<span>Labels</span><span class="Counter">{{ label_total }}</span></a>
+  </nav>
+  {% endif %}
+</header>
+<main class="container" id="main">
+{% block content %}{% endblock %}
+</main>
+<footer class="app-footer">
+  <div class="container app-footer-inner">
+    <span>{{ icon("logo", 16) }} Issue viewer {{ app_version }}</span>
+    {% if project %}<span class="footer-path" title="{{ project.path }}">{{ icon("file") }} {{ project.path }}</span>{% endif %}
+    <span class="footer-keys"><kbd>/</kbd> search{% if project and project.writable %} · <kbd>c</kbd> new issue{% endif %}</span>
+  </div>
+</footer>
+<div class="live-banner flash flash-warn" role="status" hidden>
+  <span class="js-banner-text"></span>
+  <button type="button" class="btn btn-sm js-reload">Reload</button>
+  <button type="button" class="btn-octicon js-banner-close" aria-label="Dismiss">{{ icon("x") }}</button>
+</div>
+</body>
+</html>

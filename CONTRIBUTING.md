@@ -11,7 +11,9 @@
 
 ## Code
 
-- Python 3.13, FastAPI, Jinja2 templates, plain CSS and JavaScript with no build step.
+- Rust (the version `rust-toolchain.toml` pins), axum, minijinja templates, plain CSS and
+  JavaScript with no build step. Templates and static files are compiled into the binary.
+- `make lint` must pass: rustfmt with its defaults, clippy with warnings as errors.
 - Configuration comes from the environment only. `.env.example` lists every variable; `.env`
   stays out of git.
 - A new dependency, runtime or dev, is a decision: name it, say why, who maintains it and under
@@ -21,17 +23,18 @@
 
 ## Tests
 
-- Everything has tests: unit, web (the app through its HTTP interface), smoke (the production
-  image) and end-to-end (Chromium via Playwright).
+- Everything has tests: unit (next to the code), web (`tests/web`, the router through its HTTP
+  interface), smoke (`tests/smoke`, the release binary over HTTP) and end-to-end (`tests/e2e`,
+  Chromium via Playwright). Smoke and end-to-end tests are Python and run in Docker.
 - Test names read as sentences:
-  `test_ticking_a_checkbox_changes_one_character`, not `test_task_2`.
+  `ticking_a_checkbox_changes_one_character`, not `task_2`.
 - Test data is synthetic. No real page, name, e-mail address or hostname goes into a test, a
   fixture, the docs or a commit.
 - `make check` runs what CI runs.
 
 ## Releases
 
-- CalVer, `YYYY.MM.PATCH`, tagged `vYYYY.MM.PATCH`. The version lives in `pyproject.toml`, the
-  changes in `CHANGELOG.md`.
+- CalVer, `YYYY.MM.PATCH`, tagged `vYYYY.MM.PATCH`. The version lives in `Cargo.toml`, the changes
+  in `CHANGELOG.md`.
 - After a change to the routes, `make openapi` regenerates `openapi.json`; a test fails when the
   committed file is out of date.

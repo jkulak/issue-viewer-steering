@@ -4,20 +4,14 @@ tasks/
 .claude/
 CLAUDE.md
 
-# Generated from .env by `make mounts`
-compose.override.yaml
-compose.override.yaml.tmp
+# Build output, and the data and log of the smoke and browser tests
+target/
 openapi.json.tmp
 
-# Python and tool caches
+# Python caches from the smoke and browser tests
 __pycache__/
 *.py[cod]
-*.egg-info/
-.venv/
 .pytest_cache/
-.ruff_cache/
-build/
-dist/
 
 # Playwright output
 test-results/
