@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% macro open_form(path, label, primary=false) -%}
+<form method="post" action="/-/open" class="open-form">
+  <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+  <input type="hidden" name="path" value="{{ path }}">
+  <button class="btn btn-sm{% if primary %} btn-primary{% endif %}" type="submit">{{ label }}</button>
+</form>
+{%- endmacro %}
+{% block title %}Open a directory · Issue viewer{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Open a directory</h1>
+  <p class="muted">Pick a folder of <code>NNN-slug.md</code> files under <code>{{ root.path }}</code>{% if root.read_only %}; it opens read-only, because <code>OPEN_ROOT</code> ends in <code>:ro</code>{% endif %}. An opened folder stays on the project list until the viewer restarts; add it to <code>PROJECTS</code> to keep it.</p>
+</div>
+<nav class="browse-crumbs" aria-label="Folder">
+  {{ icon("folder") }}
+  <a href="{{ browse_url('') }}"{% if not crumbs %} aria-current="page"{% endif %}>{{ root.path.name or root.path }}</a>
+  {% for name, path in crumbs %}
+  <span class="context-separator">/</span>
+  <a href="{{ browse_url(path) }}"{% if loop.last %} aria-current="page"{% endif %}>{{ name }}</a>
+  {% endfor %}
+</nav>
+<div class="Box">
+  <div class="Box-header">
+    <h2 class="Box-title">
+      {% if here_issues %}{{ here_issues }} issue file{{ "" if here_issues == 1 else "s" }} in this folder{% else %}No issue files in this folder{% endif %}
+    </h2>
+    {% if here %}
+    <a class="btn btn-sm btn-primary" href="/{{ here.name }}/issues">Go to {{ here.name }}</a>
+    {% else %}
+    {{ open_form(relative, "Open this folder", primary=here_issues > 0) }}
+    {% endif %}
+  </div>
+  {% if parent is not none %}
+  <div class="Box-row browse-row">
+    <span class="browse-main">
+      {{ icon("folder") }}
+      <a class="browse-name" href="{{ browse_url(parent) }}" aria-label="Up one folder">..</a>
+    </span>
+  </div>
+  {% endif %}
+  {% for row in rows %}
+  {% set folder = row.folder %}
+  <div class="Box-row browse-row">
+    <span class="browse-main">
+      {{ icon("folder") }}
+      <a class="browse-name" href="{{ browse_url(folder.relative) }}">{{ folder.name }}</a>
+      {% for inner in folder.issue_folders %}
+      <a class="Label browse-shortcut" href="{{ browse_url(folder.relative ~ '/' ~ inner) }}">{{ inner }}/</a>
+      {% endfor %}
+    </span>
+    <span class="browse-actions">
+      {% if folder.issues %}<span class="muted small">{{ folder.issues }} issue file{{ "" if folder.issues == 1 else "s" }}</span>{% endif %}
+      {% if row.project %}
+      <a class="btn btn-sm" href="/{{ row.project.name }}/issues">Go to {{ row.project.name }}</a>
+      {% elif folder.issues %}
+      {{ open_form(folder.relative, "Open") }}
+      {% endif %}
+    </span>
+  </div>
+  {% else %}
+  {% if parent is none %}
+  <div class="blankslate">
+    {{ icon("folder", 24) }}
+    <h3>No folders here</h3>
+    <p>Hidden folders and symbolic links are not shown.</p>
+  </div>
+  {% endif %}
+  {% endfor %}
+</div>
+{% endblock %}

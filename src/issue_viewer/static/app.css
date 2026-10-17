@@ -142,6 +142,7 @@ summary::-webkit-details-marker { display: none; }
 .context-current { font-weight: 600; }
 .context-separator { color: var(--fg-muted); }
 .app-header-context .Label { margin-left: 6px; }
+.app-header-open { margin-left: auto; }
 
 .underline-nav { display: flex; gap: 8px; padding: 0 32px; overflow-x: auto; }
 .underline-nav-item {
@@ -387,6 +388,21 @@ textarea.form-control { resize: vertical; }
 .project-row-counts a:hover, .label-row-counts a:hover { color: var(--fg-accent); text-decoration: none; }
 .label-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; padding: 16px; }
 .label-row .IssueLabel { font-size: 14px; line-height: 22px; padding: 0 10px; }
+
+/* Open */
+
+.browse-crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-bottom: 16px; font-size: 16px; font-weight: 600; }
+.browse-crumbs .icon { color: var(--fg-muted); margin-right: 4px; }
+.browse-crumbs a[aria-current="page"] { color: var(--fg); }
+.browse-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; min-height: 45px; }
+.browse-main { display: flex; flex: 1 1 240px; align-items: center; gap: 8px; min-width: 0; }
+.browse-main > .icon { color: var(--fg-accent); }
+.browse-name { min-width: 0; color: var(--fg); overflow-wrap: break-word; }
+.browse-name:hover { color: var(--fg-accent); }
+.browse-shortcut { flex-shrink: 0; }
+.browse-shortcut:hover { text-decoration: none; border-color: var(--border-accent); }
+.browse-actions { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+.open-form { margin: 0; }
 
 /* Issue page */
 

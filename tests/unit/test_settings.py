@@ -3,7 +3,13 @@ from pathlib import Path
 import pytest
 
 from issue_viewer.mounts import compose_override
-from issue_viewer.settings import ConfigError, load_settings, parse_projects
+from issue_viewer.settings import (
+    ConfigError,
+    OpenRoot,
+    load_settings,
+    parse_open_root,
+    parse_projects,
+)
 
 
 def test_projects_are_parsed_with_the_read_only_suffix():
@@ -77,3 +83,25 @@ def test_the_compose_override_mounts_each_directory_at_its_own_path():
             }
         }
     }
+
+
+def test_the_open_root_is_parsed_with_the_read_only_suffix():
+    assert parse_open_root(" /home/u/dev/ ") == OpenRoot(Path("/home/u/dev"), False)
+    assert parse_open_root("/home/u/dev:ro") == OpenRoot(Path("/home/u/dev"), True)
+    assert parse_open_root("") is None
+    assert load_settings({}).open_root is None
+
+
+def test_a_relative_open_root_is_refused():
+    with pytest.raises(ConfigError):
+        load_settings({"OPEN_ROOT": "dev"})
+
+
+def test_the_compose_override_mounts_the_open_root_with_its_own_mode():
+    override = compose_override(
+        parse_projects("a=/home/u/dev/a/tasks"), OpenRoot(Path("/home/u/dev"), True)
+    )
+    assert [(v["target"], v["read_only"]) for v in override["services"]["app"]["volumes"]] == [
+        ("/home/u/dev", True),
+        ("/home/u/dev/a/tasks", False),
+    ]

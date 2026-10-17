@@ -26,11 +26,21 @@ class ProjectConfig:
     name: str
     path: Path
     read_only: bool = False
+    opened: bool = False  # picked with Open rather than listed in PROJECTS
+
+
+@dataclass(frozen=True)
+class OpenRoot:
+    """The directory tree that Open can browse, mounted for that purpose only."""
+
+    path: Path
+    read_only: bool = False
 
 
 @dataclass(frozen=True)
 class Settings:
     projects: tuple[ProjectConfig, ...] = ()
+    open_root: OpenRoot | None = None
     allowed_hosts: tuple[str, ...] = LOOPBACK_HOSTS
     timezone: tzinfo = UTC
     refresh_seconds: float = 3.0
@@ -55,13 +65,26 @@ def parse_projects(value: str) -> tuple[ProjectConfig, ...]:
             )
         if any(project.name == name for project in projects):
             raise ConfigError(f"project {name!r} is listed twice")
-        read_only = location.endswith(":ro")
-        if read_only or location.endswith(":rw"):
-            location = location[:-3]
-        if not location.startswith("/"):
-            raise ConfigError(f"the path of {name!r} must be absolute, got {location!r}")
-        projects.append(ProjectConfig(name, Path(os.path.normpath(location)), read_only))
+        path, read_only = _location(location, f"the path of {name!r}")
+        projects.append(ProjectConfig(name, path, read_only))
     return tuple(projects)
+
+
+def parse_open_root(value: str) -> OpenRoot | None:
+    """Parse `/absolute/path[:ro]`; an empty value turns Open off."""
+    location = value.strip()
+    if not location:
+        return None
+    return OpenRoot(*_location(location, "OPEN_ROOT"))
+
+
+def _location(location: str, what: str) -> tuple[Path, bool]:
+    read_only = location.endswith(":ro")
+    if read_only or location.endswith(":rw"):
+        location = location[:-3]
+    if not location.startswith("/"):
+        raise ConfigError(f"{what} must be absolute, got {location!r}")
+    return Path(os.path.normpath(location)), read_only
 
 
 def parse_hosts(value: str) -> tuple[str, ...]:
@@ -88,6 +111,7 @@ def load_settings(environ: Mapping[str, str] | None = None) -> Settings:
         raise ConfigError("REFRESH_SECONDS cannot be negative")
     return Settings(
         projects=parse_projects(env.get("PROJECTS", "")),
+        open_root=parse_open_root(env.get("OPEN_ROOT", "")),
         allowed_hosts=parse_hosts(env.get("ALLOWED_HOSTS", "")),
         timezone=parse_timezone(env.get("TZ", "")),
         refresh_seconds=refresh,

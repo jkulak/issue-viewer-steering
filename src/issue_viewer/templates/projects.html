@@ -3,7 +3,7 @@
 {% block content %}
 <div class="page-head">
   <h1>Projects</h1>
-  <p class="muted">The issue directories listed in <code>PROJECTS</code>. Each one is a folder of <code>NNN-slug.md</code> files.</p>
+  <p class="muted">The issue directories listed in <code>PROJECTS</code>{% if can_open %} and the ones picked with <a href="/-/open">Open</a>{% endif %}. Each one is a folder of <code>NNN-slug.md</code> files.</p>
 </div>
 {% if not rows %}
 <div class="Box">
@@ -11,6 +11,7 @@
     {{ icon("repo", 24) }}
     <h3>No projects configured</h3>
     <p>Set <code>PROJECTS=name=/absolute/path[:ro],…</code> in <code>.env</code> and run <code>make up</code>.</p>
+    {% if can_open %}<p><a class="btn" href="/-/open">{{ icon("folder") }} Open a directory</a></p>{% endif %}
   </div>
 </div>
 {% else %}
@@ -23,6 +24,7 @@
         {{ icon("repo") }}
         <a href="/{{ item.name }}/issues">{{ item.name }}</a>
         <span class="Label">{% if item.writable %}Read-write{% else %}{{ icon("lock", 12) }} Read-only{% endif %}</span>
+        {% if item.config.opened %}<span class="Label" title="Picked with Open; forgotten when the viewer restarts">Opened</span>{% endif %}
       </h2>
       <p class="project-row-path muted">{{ item.path }}</p>
       {% if not item.exists %}

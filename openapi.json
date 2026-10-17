@@ -5,6 +5,80 @@
     "version": "2026.9.0"
   },
   "paths": {
+    "/-/open": {
+      "post": {
+        "summary": "Open Directory",
+        "description": "Show a directory under the open root as a project, until the viewer restarts.",
+        "operationId": "open_directory___open_post",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_open_directory___open_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Open Page",
+        "operationId": "open_page___open_get",
+        "parameters": [
+          {
+            "name": "path",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Path"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/{project_name}/issues": {
       "post": {
         "summary": "Create Issue",
@@ -801,6 +875,17 @@
         },
         "type": "object",
         "title": "Body_create_issue__project_name__issues_post"
+      },
+      "Body_open_directory___open_post": {
+        "properties": {
+          "path": {
+            "type": "string",
+            "title": "Path",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "Body_open_directory___open_post"
       },
       "Body_post_comment__project_name__issues__number__comments_post": {
         "properties": {

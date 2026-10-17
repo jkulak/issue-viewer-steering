@@ -6,7 +6,7 @@
     {{ icon("alert", 32) }}
     <h2>{{ message }}</h2>
     <p class="muted">Error {{ status }}.</p>
-    <p><a class="btn" href="/">Back to the projects</a></p>
+    <p><a class="btn" href="/">Back to the projects</a>{% if can_open %} <a class="btn" href="/-/open">{{ icon("folder") }} Open a directory</a>{% endif %}</p>
   </div>
 </div>
 {% endblock %}

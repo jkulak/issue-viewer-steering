@@ -33,6 +33,22 @@ PROJECTS=notes=/Users/you/dev/notes/tasks,archive=/Users/you/dev/old-project/tas
 Run `make up` again after changing the list: it regenerates `compose.override.yaml`, the file
 that holds the mounts.
 
+### Opening a directory that is not in the list
+
+Set `OPEN_ROOT` to a directory tree, for example the folder that holds your repositories, and
+every page gets an **Open** button:
+
+```dotenv
+OPEN_ROOT=/Users/you/dev:ro
+```
+
+Open browses the folders under that root, shows how many issue files each one holds and points at
+the `tasks/` or `issues/` folder inside a repository. Opening a folder adds it to the project list
+until the viewer restarts; to keep it, add it to `PROJECTS`. Its name comes from its path, without
+a trailing `tasks` or `issues`: `notes-app/tasks` opens as `notes-app`. A folder that is already a
+project opens that project. With `:ro`, the root is mounted read-only and every folder opened from
+it is read-only too; a directory in `PROJECTS` keeps its own mode either way.
+
 ## The files it reads and writes
 
 An issue is one file named `NNN-slug.md`. The number is the issue's identity and never changes;
@@ -120,6 +136,7 @@ HTML comments are hidden. `#N` and links to `NNN-slug.md` open that issue.
 | Variable | Default | Meaning |
 |---|---|---|
 | `PROJECTS` | – | `name=/absolute/path[:ro],…`, the directories to show |
+| `OPEN_ROOT` | – | `/absolute/path[:ro]`, the tree **Open** browses; empty turns Open off |
 | `PORT` | `8090` | port on 127.0.0.1 |
 | `ALLOWED_HOSTS` | – | extra host names to answer to; `localhost` and `127.0.0.1` always work |
 | `TZ` | `UTC` | time zone for comment timestamps and dates |
@@ -135,8 +152,11 @@ There is no login, so the viewer relies on where requests come from:
   rebinding.
 - A write must come from the viewer's own page (Origin and Sec-Fetch-Site) and carry the token
   the page embeds, which stops another site from posting a form to it.
-- Only the configured directories are mounted; `:ro` ones are read-only for Docker as well. No
-  request can name a path: an issue is addressed by project and number.
+- Only the configured directories and `OPEN_ROOT` are mounted; `:ro` ones are read-only for
+  Docker as well. An issue is addressed by project and number, never by path. Open is the one
+  place a request names a folder, always relative to `OPEN_ROOT`: hidden folders and `..` are
+  refused, a symbolic link may not lead out of the root, and opening a folder is a write like any
+  other, with the same origin and token checks.
 - The container runs as a non-root user on a read-only root filesystem, with every capability
   dropped.
 - Pages load nothing from outside the viewer: no CDN, no web fonts, no external images. The
