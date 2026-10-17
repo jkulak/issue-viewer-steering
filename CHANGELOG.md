@@ -74,3 +74,9 @@ Versions follow CalVer, `YYYY.MM.PATCH`, tagged `vYYYY.MM.PATCH`.
   before a merge, is the gate.
 - The Docker image, `compose.yaml` and the generated mounts; the viewer reads the directories in
   `PROJECTS` and `OPEN_ROOT` directly.
+
+### Fixed
+
+- `make check` passes on Docker Desktop: the browser tests no longer find `/data` empty when they
+  run right after the smoke tests, because the test data directory is emptied between runs
+  instead of being removed.

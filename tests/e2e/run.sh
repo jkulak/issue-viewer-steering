@@ -14,7 +14,13 @@ log="$root/target/e2e-viewer.log"
 
 [ -x "$binary" ] || { echo "No $binary: run make build first." >&2; exit 1; }
 
-rm -rf "$data"
+# Docker Desktop's file sharing keeps a removed directory behind a bind mount for a moment, and a
+# container started right after it is recreated can find /data empty. So the data directory
+# stays from one run to the next and only what is in it is removed.
+empty_data() { find "$data" -mindepth 1 -delete; }
+
+mkdir -p "$data"
+empty_data
 mkdir -p "$data/demo" "$data/archive"
 
 # Docker Desktop reaches the host's loopback as host.docker.internal; on Linux the container
@@ -35,7 +41,7 @@ GIT_CEILING_DIRECTORIES="$data" PATH="$root/tests/fixtures/github:$PATH" GITHUB_
     TZ=UTC REFRESH_SECONDS=1 LOG_LEVEL=WARNING PORT=0 \
     "$binary" --env-file /dev/null >"$log" 2>&1 &
 viewer=$!
-trap 'kill $viewer 2>/dev/null || true; wait $viewer 2>/dev/null || true; rm -rf "$data"' EXIT INT TERM
+trap 'kill $viewer 2>/dev/null || true; wait $viewer 2>/dev/null || true; empty_data' EXIT INT TERM
 
 # The binary prints its address as the first line once it listens.
 url=""
