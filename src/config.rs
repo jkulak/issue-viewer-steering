@@ -14,6 +14,10 @@ static PROJECT_NAME: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$").unwrap());
 static ENV_KEY: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"^[A-Za-z_][A-Za-z0-9_]*$").unwrap());
+static GITHUB_OWNER: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"^[A-Za-z0-9][A-Za-z0-9-]{0,38}$").unwrap());
+static GITHUB_NAME: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"^[A-Za-z0-9._-]{1,100}$").unwrap());
 
 /// A project with one of these names would shadow a route of the app itself. Sorted, because the
 /// error message lists them.
@@ -21,6 +25,9 @@ pub const RESERVED_NAMES: [&str; 5] = ["-", "favicon.ico", "healthz", "openapi.j
 /// Loopback names cannot be used for DNS rebinding, so they are always accepted.
 pub const LOOPBACK_HOSTS: [&str; 2] = ["localhost", "127.0.0.1"];
 pub const DEFAULT_PORT: u16 = 8090;
+/// Every two minutes keeps a board current without spending much of GitHub's hourly allowance.
+pub const DEFAULT_GITHUB_REFRESH_SECONDS: u64 = 120;
+pub const MIN_GITHUB_REFRESH_SECONDS: u64 = 30;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ConfigError(pub String);
@@ -44,6 +51,22 @@ pub struct ProjectConfig {
     pub read_only: bool,
     /// Picked with Open rather than listed in `PROJECTS`.
     pub opened: bool,
+}
+
+/// A GitHub repository the board shows, or with `name` None every repository of the owner.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct GithubEntry {
+    pub owner: String,
+    pub name: Option<String>,
+    /// A local clone, read for branches the way a project's repository is.
+    pub checkout: Option<PathBuf>,
+}
+
+impl GithubEntry {
+    /// `owner/name`, or `owner/*`.
+    pub fn full_name(&self) -> String {
+        format!("{}/{}", self.owner, self.name.as_deref().unwrap_or("*"))
+    }
 }
 
 /// The directory tree that Open can browse.
@@ -81,6 +104,10 @@ pub struct Settings {
     pub refresh_seconds: f64,
     pub log_level: LogLevel,
     pub port: u16,
+    pub github: Vec<GithubEntry>,
+    pub github_refresh_seconds: u64,
+    /// The `gh` program; tests put a fake one here.
+    pub gh: PathBuf,
 }
 
 impl Default for Settings {
@@ -93,6 +120,9 @@ impl Default for Settings {
             refresh_seconds: 3.0,
             log_level: LogLevel::Info,
             port: DEFAULT_PORT,
+            github: Vec::new(),
+            github_refresh_seconds: DEFAULT_GITHUB_REFRESH_SECONDS,
+            gh: PathBuf::from("gh"),
         }
     }
 }
@@ -135,6 +165,72 @@ pub fn parse_projects(value: &str) -> Result<Vec<ProjectConfig>, ConfigError> {
         });
     }
     Ok(projects)
+}
+
+/// Parse `owner/name[=/absolute/checkout],owner/*,…`; an empty value turns GitHub off.
+pub fn parse_github(value: &str) -> Result<Vec<GithubEntry>, ConfigError> {
+    let mut entries: Vec<GithubEntry> = Vec::new();
+    for raw in value.split(',') {
+        let entry = raw.trim();
+        if entry.is_empty() {
+            continue;
+        }
+        let (repository, checkout) = match entry.split_once('=') {
+            Some((repository, checkout)) => (repository.trim(), Some(checkout.trim())),
+            None => (entry, None),
+        };
+        let malformed = || {
+            ConfigError(format!(
+                "GITHUB_REPOS: {} is not owner/name, owner/name=/absolute/checkout or owner/*",
+                quoted(entry)
+            ))
+        };
+        let (owner, name) = repository.split_once('/').ok_or_else(malformed)?;
+        let name = match name {
+            "*" => None,
+            name if GITHUB_NAME.is_match(name) && name != "." && name != ".." => {
+                Some(name.to_string())
+            }
+            _ => return Err(malformed()),
+        };
+        if !GITHUB_OWNER.is_match(owner) {
+            return Err(malformed());
+        }
+        let checkout = match checkout {
+            None => None,
+            Some(_) if name.is_none() => {
+                return error(format!(
+                    "GITHUB_REPOS: {} cannot have a checkout; name the repository",
+                    quoted(repository)
+                ));
+            }
+            Some(path) if path.starts_with('/') => Some(normalise(path)),
+            Some(path) => {
+                return error(format!(
+                    "GITHUB_REPOS: the checkout of {} must be absolute, got {}",
+                    quoted(repository),
+                    quoted(path)
+                ));
+            }
+        };
+        let entry = GithubEntry {
+            owner: owner.to_string(),
+            name,
+            checkout,
+        };
+        // GitHub compares names without regard to case.
+        let same = |other: &GithubEntry| {
+            other.full_name().to_lowercase() == entry.full_name().to_lowercase()
+        };
+        if entries.iter().any(same) {
+            return error(format!(
+                "GITHUB_REPOS: {} is listed twice",
+                quoted(&entry.full_name())
+            ));
+        }
+        entries.push(entry);
+    }
+    Ok(entries)
 }
 
 /// Parse `/absolute/path[:ro]`; an empty value turns Open off.
@@ -243,6 +339,21 @@ pub fn load_settings(env: &dyn Fn(&str) -> Option<String>) -> Result<Settings, C
             ))
         })?
     };
+    let github_refresh_text = get("GITHUB_REFRESH_SECONDS");
+    let github_refresh_seconds = if github_refresh_text.trim().is_empty() {
+        DEFAULT_GITHUB_REFRESH_SECONDS
+    } else {
+        match github_refresh_text.trim().parse::<u64>() {
+            Ok(value) if value >= MIN_GITHUB_REFRESH_SECONDS => value,
+            _ => {
+                return error(format!(
+                    "GITHUB_REFRESH_SECONDS must be a whole number of seconds, at least \
+                     {MIN_GITHUB_REFRESH_SECONDS}, got {}",
+                    quoted(&github_refresh_text)
+                ));
+            }
+        }
+    };
     Ok(Settings {
         projects: parse_projects(&get("PROJECTS"))?,
         open_root: parse_open_root(&get("OPEN_ROOT"))?,
@@ -251,6 +362,9 @@ pub fn load_settings(env: &dyn Fn(&str) -> Option<String>) -> Result<Settings, C
         refresh_seconds: refresh,
         log_level: parse_log_level(&get("LOG_LEVEL"))?,
         port,
+        github: parse_github(&get("GITHUB_REPOS"))?,
+        github_refresh_seconds,
+        gh: PathBuf::from("gh"),
     })
 }
 
@@ -480,6 +594,65 @@ mod tests {
     #[test]
     fn a_relative_open_root_is_refused() {
         assert!(settings_from(&[("OPEN_ROOT", "dev")]).is_err());
+    }
+
+    #[test]
+    fn github_repositories_are_parsed_with_an_optional_checkout() {
+        let entries =
+            parse_github(" acme/notes-api , acme/notes.web=/home/u/dev/notes-web/ ,other-org/* ")
+                .unwrap();
+        let found: Vec<(String, Option<&Path>)> = entries
+            .iter()
+            .map(|entry| (entry.full_name(), entry.checkout.as_deref()))
+            .collect();
+        assert_eq!(
+            found,
+            [
+                ("acme/notes-api".to_string(), None),
+                (
+                    "acme/notes.web".to_string(),
+                    Some(Path::new("/home/u/dev/notes-web"))
+                ),
+                ("other-org/*".to_string(), None),
+            ]
+        );
+        assert!(parse_github("").unwrap().is_empty());
+        assert!(settings_from(&[]).unwrap().github.is_empty());
+    }
+
+    #[test]
+    fn github_entries_that_are_not_a_repository_or_an_owner_are_refused() {
+        for value in [
+            "acme",
+            "acme/",
+            "/notes",
+            "acme/notes/extra",
+            "-acme/notes",
+            "acme/..",
+            "acme/no tes",
+            "acme/notes=relative/checkout",
+            "acme/*=/home/u/dev",
+            "acme/notes,ACME/Notes",
+            "acme/*,acme/*",
+        ] {
+            assert!(parse_github(value).is_err(), "{value} was accepted");
+        }
+    }
+
+    #[test]
+    fn github_refresh_seconds_have_a_default_and_a_floor() {
+        assert_eq!(
+            settings_from(&[]).unwrap().github_refresh_seconds,
+            DEFAULT_GITHUB_REFRESH_SECONDS
+        );
+        let settings = settings_from(&[("GITHUB_REFRESH_SECONDS", "300")]).unwrap();
+        assert_eq!(settings.github_refresh_seconds, 300);
+        for value in ["29", "0", "-5", "soon", "60.5"] {
+            assert!(
+                settings_from(&[("GITHUB_REFRESH_SECONDS", value)]).is_err(),
+                "{value} was accepted"
+            );
+        }
     }
 
     #[test]

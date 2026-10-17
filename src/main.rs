@@ -103,6 +103,18 @@ fn describe(settings: &Settings) {
         }
         None => tracing::info!("open root: off"),
     }
+    for entry in &settings.github {
+        match &entry.checkout {
+            Some(checkout) => {
+                tracing::info!(
+                    "github {}: checkout {}",
+                    entry.full_name(),
+                    checkout.display()
+                )
+            }
+            None => tracing::info!("github {}", entry.full_name()),
+        }
+    }
 }
 
 fn open_in_browser(url: &str) {
@@ -196,6 +208,8 @@ async fn serve(settings: Settings, open: bool) -> ExitCode {
         open_in_browser(&url);
     }
     let app = web::App::new(settings);
+    // Start reading GitHub now, so the first board does not open on an empty answer.
+    app.github.poke();
     if let Err(error) = axum::serve(listener, web::router(app))
         .with_graceful_shutdown(shutdown())
         .await

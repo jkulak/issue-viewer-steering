@@ -6,9 +6,8 @@
 //! kept for a few seconds, so pages that poll do not run git on every check.
 
 use std::collections::HashMap;
-use std::io::Read;
 use std::path::{Path, PathBuf};
-use std::process::{Command, Stdio};
+use std::process::Command;
 use std::sync::{Arc, LazyLock, Mutex};
 use std::time::{Duration, Instant};
 
@@ -16,6 +15,7 @@ use jiff::Timestamp;
 use regex::Regex;
 
 use crate::files;
+use crate::process::{self, Failed};
 
 /// `004-kanban-board`, `feature/4-board`: the issue number starts the last part of the name.
 static NUMBERED: LazyLock<Regex> =
@@ -142,7 +142,8 @@ impl Repository {
 
 /// Run git read-only in `directory`; None when it fails, is missing, or takes too long.
 fn git(directory: &Path, args: &[&str]) -> Option<String> {
-    let mut child = Command::new("git")
+    let mut command = Command::new("git");
+    command
         .arg("-C")
         .arg(directory)
         .args(["--no-optional-locks", "-c", "core.fsmonitor=false"])
@@ -151,39 +152,20 @@ fn git(directory: &Path, args: &[&str]) -> Option<String> {
         .env_remove("GIT_DIR")
         .env_remove("GIT_WORK_TREE")
         .env_remove("GIT_INDEX_FILE")
-        .env_remove("GIT_COMMON_DIR")
-        .stdin(Stdio::null())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::null())
-        .spawn()
-        .ok()?;
-    let mut stdout = child.stdout.take()?;
-    // Read while waiting, so a long answer cannot fill the pipe and stall git.
-    let reader = std::thread::spawn(move || {
-        let mut out = Vec::new();
-        stdout.read_to_end(&mut out).map(|_| out)
-    });
-    let deadline = Instant::now() + LIMIT;
-    loop {
-        match child.try_wait() {
-            Ok(Some(status)) => {
-                let out = reader.join().ok()?.ok()?;
-                return status
-                    .success()
-                    .then(|| String::from_utf8_lossy(&out).into_owned());
-            }
-            Ok(None) if Instant::now() < deadline => std::thread::sleep(Duration::from_millis(5)),
-            _ => {
-                let _ = child.kill();
-                let _ = child.wait();
-                tracing::warn!(
-                    "git {} in {} took too long",
-                    args.join(" "),
-                    directory.display()
-                );
-                return None;
-            }
+        .env_remove("GIT_COMMON_DIR");
+    match process::run(&mut command, LIMIT) {
+        Ok(finished) => finished
+            .success
+            .then(|| String::from_utf8_lossy(&finished.stdout).into_owned()),
+        Err(Failed::TimedOut) => {
+            tracing::warn!(
+                "git {} in {} took too long",
+                args.join(" "),
+                directory.display()
+            );
+            None
         }
+        Err(Failed::Start(_)) => None,
     }
 }
 

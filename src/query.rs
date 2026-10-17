@@ -176,17 +176,82 @@ pub fn parse(text: &str) -> Query {
     query
 }
 
-pub fn matches(query: &Query, issue: &Issue, ignore_state: bool) -> bool {
-    if !ignore_state && !state_matches(query, issue) {
+/// What a query looks at: an issue file, or an issue or pull request on GitHub.
+pub trait Searchable {
+    fn is_open(&self) -> bool;
+    /// The state as written, lower case.
+    fn raw_state(&self) -> &str;
+    fn reason(&self) -> Option<Reason>;
+    fn labels(&self) -> &[String];
+    /// The text free words are looked for in, casefolded.
+    fn search_text(&self) -> &str;
+}
+
+impl Searchable for Issue {
+    fn is_open(&self) -> bool {
+        self.is_open
+    }
+    fn raw_state(&self) -> &str {
+        &self.state
+    }
+    fn reason(&self) -> Option<Reason> {
+        self.reason
+    }
+    fn labels(&self) -> &[String] {
+        &self.labels
+    }
+    fn search_text(&self) -> &str {
+        Issue::search_text(self)
+    }
+}
+
+impl<T: Searchable + ?Sized> Searchable for &T {
+    fn is_open(&self) -> bool {
+        (**self).is_open()
+    }
+    fn raw_state(&self) -> &str {
+        (**self).raw_state()
+    }
+    fn reason(&self) -> Option<Reason> {
+        (**self).reason()
+    }
+    fn labels(&self) -> &[String] {
+        (**self).labels()
+    }
+    fn search_text(&self) -> &str {
+        (**self).search_text()
+    }
+}
+
+impl<T: Searchable + ?Sized> Searchable for std::sync::Arc<T> {
+    fn is_open(&self) -> bool {
+        (**self).is_open()
+    }
+    fn raw_state(&self) -> &str {
+        (**self).raw_state()
+    }
+    fn reason(&self) -> Option<Reason> {
+        (**self).reason()
+    }
+    fn labels(&self) -> &[String] {
+        (**self).labels()
+    }
+    fn search_text(&self) -> &str {
+        (**self).search_text()
+    }
+}
+
+pub fn matches(query: &Query, item: &impl Searchable, ignore_state: bool) -> bool {
+    if !ignore_state && !state_matches(query, item) {
         return false;
     }
-    if !query.raw_states.is_empty() && !query.raw_states.contains(&issue.state) {
+    if !query.raw_states.is_empty() && !query.raw_states.iter().any(|s| s == item.raw_state()) {
         return false;
     }
-    if query.reason.is_some() && issue.reason != query.reason {
+    if query.reason.is_some() && item.reason() != query.reason {
         return false;
     }
-    let names: Vec<String> = issue.labels.iter().map(|label| casefold(label)).collect();
+    let names: Vec<String> = item.labels().iter().map(|label| casefold(label)).collect();
     let has = |name: &String| names.contains(&casefold(name));
     if query.labels.iter().any(|group| !group.iter().any(has)) {
         return false;
@@ -194,17 +259,17 @@ pub fn matches(query: &Query, issue: &Issue, ignore_state: bool) -> bool {
     if query.excluded_labels.iter().any(has) {
         return false;
     }
-    if query.no_label && !issue.labels.is_empty() {
+    if query.no_label && !item.labels().is_empty() {
         return false;
     }
     query
         .words
         .iter()
-        .all(|word| issue.search_text().contains(word.as_str()))
+        .all(|word| item.search_text().contains(word.as_str()))
 }
 
-pub fn state_matches(query: &Query, issue: &Issue) -> bool {
-    query.open.is_none_or(|open| open == issue.is_open)
+pub fn state_matches(query: &Query, item: &impl Searchable) -> bool {
+    query.open.is_none_or(|open| open == item.is_open())
 }
 
 pub fn ordered<T: AsRef<Issue>>(issues: &mut [T], key: &str) {
