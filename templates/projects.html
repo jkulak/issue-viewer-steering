@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Projects · Issue viewer{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Projects</h1>
+  <p class="muted">The issue directories listed in <code>PROJECTS</code>{% if can_open %} and the ones picked with <a href="/-/open">Open</a>{% endif %}. Each one is a folder of <code>NNN-slug.md</code> files. <a href="/-/board">{{ icon("project") }} The board of all of them</a> shows what waits for you.</p>
+</div>
+{% if not rows %}
+<div class="Box">
+  <div class="blankslate">
+    {{ icon("repo", 24) }}
+    <h3>No projects configured</h3>
+    <p>Set <code>PROJECTS=name=/absolute/path[:ro],…</code> in <code>.env</code> and restart the viewer.</p>
+    {% if can_open %}<p><a class="btn" href="/-/open">{{ icon("folder") }} Open a directory</a></p>{% endif %}
+  </div>
+</div>
+{% else %}
+<div class="Box">
+  {% for row in rows %}
+  {% set item = row.project %}
+  <div class="Box-row project-row">
+    <div class="project-row-main">
+      <h2 class="project-row-title">
+        {{ icon("repo") }}
+        <a href="/{{ item.name }}/issues">{{ item.name }}</a>
+        <span class="Label">{% if item.writable %}Read-write{% else %}{{ icon("lock", 12) }} Read-only{% endif %}</span>
+        {% if item.opened %}<span class="Label" title="Picked with Open; forgotten when the viewer restarts">Opened</span>{% endif %}
+      </h2>
+      <p class="project-row-path muted">{{ item.path }}</p>
+      {% if not item.exists %}
+      <p class="project-row-problem">{{ icon("alert") }} This directory does not exist. Check the path in <code>PROJECTS</code> and restart the viewer.</p>
+      {% endif %}
+    </div>
+    <div class="project-row-counts">
+      <a href="/{{ item.name }}/issues?q=is%3Aissue+is%3Aopen">{{ icon("issue-opened") }} {{ row.snapshot.open_count }} open</a>
+      <a href="/{{ item.name }}/issues?q=is%3Aissue+is%3Aclosed">{{ icon("issue-closed") }} {{ row.snapshot.closed_count }} closed</a>
+      <a href="/{{ item.name }}/board">{{ icon("project") }} Board</a>
+      {% if row.latest %}<span title="{{ absolute(row.latest) }}">Updated {{ ago(row.latest) }}</span>{% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

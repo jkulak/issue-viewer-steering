@@ -1,0 +1,919 @@
+{
+  "info": {
+    "title": "Issue viewer",
+    "version": "2026.10.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {}
+            },
+            "description": "An HTML page"
+          },
+          "default": {
+            "description": "An error page, or {error} with Accept: application/json"
+          }
+        },
+        "summary": "The projects"
+      }
+    },
+    "/-/board": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project",
+            "required": false,
+            "schema": {
+              "description": "The projects, or GitHub repositories as owner/name, to show; all of them when there is none",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "description": "Filter the cards like the issue list: label:bug, is:open, words",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "done",
+            "required": false,
+            "schema": {
+              "description": "all to show every card in Done, not only the ten most recent",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {}
+            },
+            "description": "An HTML page"
+          },
+          "default": {
+            "description": "An error page, or {error} with Accept: application/json"
+          }
+        },
+        "summary": "The board of several projects, or of all of them"
+      }
+    },
+    "/-/board/version": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project",
+            "required": false,
+            "schema": {
+              "description": "The projects, or GitHub repositories as owner/name, to show; all of them when there is none",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {}
+            },
+            "description": "{version}"
+          },
+          "default": {
+            "description": "An error page, or {error} with Accept: application/json"
+          }
+        },
+        "summary": "What an open board polls to notice a change to an issue file or a branch"
+      }
+    },
+    "/-/open": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "path",
+            "required": false,
+            "schema": {
+              "description": "A folder relative to the open root",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {}
+            },
+            "description": "An HTML page"
+          },
+          "default": {
+            "description": "An error page, or {error} with Accept: application/json"
+          }
+        },
+        "summary": "Browse the folders under the open root"
+      },
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "_csrf": {
+                    "description": "The token the page embeds; or send it as X-CSRF-Token",
+                    "type": "string"
+                  },
+                  "path": {
+                    "description": "A folder relative to the open root",
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "303": {
+            "description": "Saved; the Location header is the page to show next"
+          },
+          "default": {
+            "description": "An error page, or {error} with Accept: application/json"
+          }
+        },
+        "summary": "Open a folder under the open root as a project"
+      }
+    },
+    "/{project_name}/-/version": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "issue",
+            "required": false,
+            "schema": {
+              "description": "An issue number; without it, the version of the whole project",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {}
+            },
+            "description": "{version}: a string, or null for an issue that is not there"
+          },
+          "default": {
+            "description": "An error page, or {error} with Accept: application/json"
+          }
+        },
+        "summary": "What open pages poll to notice a change on disk"
+      }
+    },
+    "/{project_name}/board": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "description": "Filter the cards like the issue list: label:bug, is:open, words",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "done",
+            "required": false,
+            "schema": {
+              "description": "all to show every card in Done, not only the ten most recent",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {}
+            },
+            "description": "An HTML page"
+          },
+          "default": {
+            "description": "An error page, or {error} with Accept: application/json"
+          }
+        },
+        "summary": "The project's board"
+      }
+    },
+    "/{project_name}/issues": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "description": "A search like GitHub's: is:open, label:bug, sort:updated-desc, words",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "description": "The page, from 1",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {}
+            },
+            "description": "An HTML page"
+          },
+          "default": {
+            "description": "An error page, or {error} with Accept: application/json"
+          }
+        },
+        "summary": "The issue list"
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "_csrf": {
+                    "description": "The token the page embeds; or send it as X-CSRF-Token",
+                    "type": "string"
+                  },
+                  "description": {
+                    "description": "The description, in Markdown",
+                    "type": "string"
+                  },
+                  "labels": {
+                    "description": "The labels",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "title": {
+                    "description": "The title",
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "303": {
+            "description": "Saved; the Location header is the page to show next"
+          },
+          "default": {
+            "description": "An error page, or {error} with Accept: application/json"
+          }
+        },
+        "summary": "Create an issue"
+      }
+    },
+    "/{project_name}/issues/new": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {}
+            },
+            "description": "An HTML page"
+          },
+          "default": {
+            "description": "An error page, or {error} with Accept: application/json"
+          }
+        },
+        "summary": "The form for a new issue"
+      }
+    },
+    "/{project_name}/issues/{number}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "number",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {}
+            },
+            "description": "An HTML page"
+          },
+          "default": {
+            "description": "An error page, or {error} with Accept: application/json"
+          }
+        },
+        "summary": "An issue"
+      }
+    },
+    "/{project_name}/issues/{number}/comments": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "number",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "_csrf": {
+                    "description": "The token the page embeds; or send it as X-CSRF-Token",
+                    "type": "string"
+                  },
+                  "action": {
+                    "description": "comment, close, close-not-planned or reopen",
+                    "type": "string"
+                  },
+                  "text": {
+                    "description": "The comment, in Markdown; may be empty when closing or reopening",
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "303": {
+            "description": "Saved; the Location header is the page to show next"
+          },
+          "default": {
+            "description": "An error page, or {error} with Accept: application/json"
+          }
+        },
+        "summary": "Comment, close or reopen"
+      }
+    },
+    "/{project_name}/issues/{number}/comments/{index}": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "number",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "index",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "_csrf": {
+                    "description": "The token the page embeds; or send it as X-CSRF-Token",
+                    "type": "string"
+                  },
+                  "text": {
+                    "description": "The new comment, in Markdown",
+                    "type": "string"
+                  },
+                  "version": {
+                    "description": "The version of the file the edit is based on",
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "303": {
+            "description": "Saved; the Location header is the page to show next"
+          },
+          "default": {
+            "description": "An error page, or {error} with Accept: application/json"
+          }
+        },
+        "summary": "Change a comment"
+      }
+    },
+    "/{project_name}/issues/{number}/comments/{index}/delete": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "number",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "index",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "_csrf": {
+                    "description": "The token the page embeds; or send it as X-CSRF-Token",
+                    "type": "string"
+                  },
+                  "version": {
+                    "description": "The version of the file the edit is based on",
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "303": {
+            "description": "Saved; the Location header is the page to show next"
+          },
+          "default": {
+            "description": "An error page, or {error} with Accept: application/json"
+          }
+        },
+        "summary": "Delete a comment"
+      }
+    },
+    "/{project_name}/issues/{number}/description": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "number",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "_csrf": {
+                    "description": "The token the page embeds; or send it as X-CSRF-Token",
+                    "type": "string"
+                  },
+                  "text": {
+                    "description": "The new description, in Markdown",
+                    "type": "string"
+                  },
+                  "version": {
+                    "description": "The version of the file the edit is based on",
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "303": {
+            "description": "Saved; the Location header is the page to show next"
+          },
+          "default": {
+            "description": "An error page, or {error} with Accept: application/json"
+          }
+        },
+        "summary": "Change the description"
+      }
+    },
+    "/{project_name}/issues/{number}/labels": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "number",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "_csrf": {
+                    "description": "The token the page embeds; or send it as X-CSRF-Token",
+                    "type": "string"
+                  },
+                  "labels": {
+                    "description": "The labels",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "303": {
+            "description": "Saved; the Location header is the page to show next"
+          },
+          "default": {
+            "description": "An error page, or {error} with Accept: application/json"
+          }
+        },
+        "summary": "Set the labels"
+      }
+    },
+    "/{project_name}/issues/{number}/status": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "number",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "_csrf": {
+                    "description": "The token the page embeds; or send it as X-CSRF-Token",
+                    "type": "string"
+                  },
+                  "back": {
+                    "description": "The page to go back to, a path on this site; the board when missing",
+                    "type": "string"
+                  },
+                  "status": {
+                    "description": "backlog, selected, in-progress, testing, review, blocked or done",
+                    "type": "string"
+                  },
+                  "version": {
+                    "description": "The version of the file the edit is based on",
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "303": {
+            "description": "Saved; the Location header is the page to show next"
+          },
+          "default": {
+            "description": "An error page, or {error} with Accept: application/json"
+          }
+        },
+        "summary": "Move the issue to a column of the board; with Accept: application/json the answer is {version, column} instead of a redirect"
+      }
+    },
+    "/{project_name}/issues/{number}/tasks": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "number",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "_csrf": {
+                    "description": "The token the page embeds; or send it as X-CSRF-Token",
+                    "type": "string"
+                  },
+                  "checked": {
+                    "description": "1, true or on to tick it; anything else unticks it",
+                    "type": "string"
+                  },
+                  "line": {
+                    "description": "The line of the checkbox in that part",
+                    "type": "integer"
+                  },
+                  "part": {
+                    "description": "description, or the index of a comment",
+                    "type": "string"
+                  },
+                  "version": {
+                    "description": "The version of the file the edit is based on",
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {}
+            },
+            "description": "The new version and task counts: {version, done, total}"
+          },
+          "default": {
+            "description": "An error page, or {error} with Accept: application/json"
+          }
+        },
+        "summary": "Tick or untick a checkbox"
+      }
+    },
+    "/{project_name}/issues/{number}/title": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "number",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "_csrf": {
+                    "description": "The token the page embeds; or send it as X-CSRF-Token",
+                    "type": "string"
+                  },
+                  "title": {
+                    "description": "The new title",
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "303": {
+            "description": "Saved; the Location header is the page to show next"
+          },
+          "default": {
+            "description": "An error page, or {error} with Accept: application/json"
+          }
+        },
+        "summary": "Change the title"
+      }
+    },
+    "/{project_name}/labels": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {}
+            },
+            "description": "An HTML page"
+          },
+          "default": {
+            "description": "An error page, or {error} with Accept: application/json"
+          }
+        },
+        "summary": "The labels"
+      }
+    },
+    "/{project_name}/preview": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "properties": {
+                  "_csrf": {
+                    "description": "The token the page embeds; or send it as X-CSRF-Token",
+                    "type": "string"
+                  },
+                  "text": {
+                    "description": "Markdown",
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {}
+            },
+            "description": "{html}"
+          },
+          "default": {
+            "description": "An error page, or {error} with Accept: application/json"
+          }
+        },
+        "summary": "Render Markdown the way an issue shows it"
+      }
+    }
+  }
+}

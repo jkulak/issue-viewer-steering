@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% from "_macros.html" import label_pill %}
+{% block title %}Labels · {{ project.name }}{% endblock %}
+{% block body_attributes %} data-version-url="/{{ project.name }}/-/version" data-version="{{ signature }}"{% endblock %}
+{% block content %}
+<div class="list-toolbar">
+  <p class="muted toolbar-note">Labels are the names in the <code>labels</code> list of each file's front matter. A new one appears here once an issue uses it.</p>
+  <div class="toolbar-actions">
+    {% if project.writable %}<a class="btn btn-primary js-new-issue" href="/{{ project.name }}/issues/new">New issue</a>{% endif %}
+  </div>
+</div>
+<div class="Box">
+  <div class="Box-header"><h2 class="Box-title">{{ rows|length }} label{{ "" if rows|length == 1 else "s" }}</h2></div>
+  {% for row in rows %}
+  <div class="Box-row label-row">
+    <div class="label-row-name">{{ label_pill(row.name, label_url(row.name, "open")) }}</div>
+    <div class="label-row-counts">
+      <a href="{{ label_url(row.name, 'open') }}">{{ icon("issue-opened") }} {{ row.open }} open</a>
+      <a href="{{ label_url(row.name, 'closed') }}">{{ icon("issue-closed") }} {{ row.closed }} closed</a>
+    </div>
+  </div>
+  {% else %}
+  <div class="blankslate">
+    {{ icon("tag", 24) }}
+    <h3>No labels yet</h3>
+    <p>Add <code>labels: [bug, ui]</code> to an issue's front matter, or pick labels when you create one.</p>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

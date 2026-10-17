@@ -1,0 +1,20 @@
+# Configuration and working notes stay on the machine
+.env
+tasks/
+.claude/
+CLAUDE.md
+
+# Build output, and the data and log of the smoke and browser tests
+target/
+openapi.json.tmp
+
+# Python caches from the smoke and browser tests
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Playwright output
+test-results/
+playwright-report/
+
+.DS_Store
