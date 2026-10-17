@@ -1,6 +1,6 @@
 # Configuration and working notes stay on the machine
 .env
-tasks/
+/tasks
 .claude/
 CLAUDE.md
 
